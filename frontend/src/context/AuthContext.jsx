@@ -8,18 +8,21 @@ export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
+    const fetchProfile = async () => {
+        try {
+            const response = await api.get('/users/me');
+            setUser(response.data);
+        } catch (error) {
+            console.error("Failed to fetch profile", error);
+            // logout(); // Optional: logout if token invalid
+        }
+    };
+
     useEffect(() => {
         if (token) {
-            // Decode token or fetch user profile if endpoint exists.
-            // For now, we'll just set a dummy user or wait for a /me endpoint implementation.
-            // Or we can just assume logged in if token exists for MVP.
-            // Let's rely on stored user info if available, or just the presence of token.
-
-            // Ideally: api.get('/auth/me').then(...)
-            setLoading(false);
-        } else {
-            setLoading(false);
+            fetchProfile();
         }
+        setLoading(false);
     }, [token]);
 
     const login = async (email, password) => {
@@ -28,13 +31,21 @@ export const AuthProvider = ({ children }) => {
             const { token } = response.data;
             setToken(token);
             localStorage.setItem('token', token);
-
-            // Simple user object for now, replace with actual user data from response or /me
-            setUser({ email });
+            // Effect will trigger fetchProfile
             return { success: true };
         } catch (error) {
             console.error("Login failed", error);
             return { success: false, message: error.response?.data?.message || 'Login failed' };
+        }
+    };
+
+    const updateProfile = async (data) => {
+        try {
+            const response = await api.put('/users/me', data);
+            setUser(response.data);
+            return { success: true };
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || 'Update failed' };
         }
     };
 
@@ -45,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, updateProfile, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );

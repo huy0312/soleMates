@@ -1,5 +1,7 @@
 package com.solemates.backend.service;
 
+import com.solemates.backend.dto.UpdateProfileRequest;
+import com.solemates.backend.dto.UserDTO;
 import com.solemates.backend.model.User;
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +18,8 @@ public interface UserService {
     void deleteUser(Long id);
 
     boolean existsByEmail(String email);
+
+    UserDTO getUserProfile(String email);
+
+    UserDTO updateUserProfile(String email, UpdateProfileRequest request);
 }

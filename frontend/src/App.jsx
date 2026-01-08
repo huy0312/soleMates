@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import MemberDetail from './pages/MemberDetail';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/member/:id" element={<MemberDetail />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>
           <Footer />
