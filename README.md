@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SoleMates Running Club Web Application
 
 This project is a web application for the SoleMates Running Club, featuring member management, Strava integration, and content management.
@@ -72,3 +73,4 @@ The frontend will start on `http://localhost:5173`.
 3.  Commit your changes (`git commit -m 'Add some amazing feature'`)
 4.  Push to the branch (`git push origin feature/amazing-feature`)
 5.  Open a Pull Request
+
