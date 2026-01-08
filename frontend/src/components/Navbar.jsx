@@ -68,7 +68,7 @@ const Navbar = () => {
                                 onClick={handleLoginClick}
                                 className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-6 py-2 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg shadow-violet-500/20 cursor-pointer"
                             >
-                                Đăng Nhập
+                                Tham Gia
                             </button>
                         )}
                     </div>
@@ -112,7 +112,7 @@ const Navbar = () => {
                                 onClick={() => { handleLoginClick(); setIsOpen(false); }}
                                 className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white px-6 py-3 rounded-full font-medium"
                             >
-                                Đăng Nhập
+                                Tham Gia
                             </button>
                         )}
                     </div>
