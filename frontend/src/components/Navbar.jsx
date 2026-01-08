@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import logo from '../assets/logo.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -15,6 +18,15 @@ const Navbar = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+
+    const handleLogoutClick = () => {
+        logout();
+        navigate('/');
+    };
 
     return (
         <motion.nav
@@ -26,7 +38,7 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center">
                     {/* Logo */}
-                    <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
                         <img src={logo} alt="Solemates Logo" className="h-10 w-10 object-cover rounded-full" />
                         <span className="font-bold text-xl tracking-wider uppercase hidden sm:block">Solemates</span>
                     </div>
@@ -37,9 +49,28 @@ const Navbar = () => {
                         <a href="/#about" className="text-gray-300 hover:text-white transition-colors">Giới Thiệu</a>
                         <a href="/#team" className="text-gray-300 hover:text-white transition-colors">Đội Ngũ</a>
                         <a href="/#features" className="text-gray-300 hover:text-white transition-colors">Tính Năng</a>
-                        <button className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-6 py-2 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg shadow-violet-500/20 cursor-pointer">
-                            Tham Gia
-                        </button>
+
+                        {user ? (
+                            <div className="flex items-center gap-4">
+                                <span className="text-cyan-400 font-medium flex items-center gap-2">
+                                    <User size={18} /> {user.email?.split('@')[0]}
+                                </span>
+                                <button
+                                    onClick={handleLogoutClick}
+                                    className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-all"
+                                    title="Đăng xuất"
+                                >
+                                    <LogOut size={20} />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleLoginClick}
+                                className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-6 py-2 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg shadow-violet-500/20 cursor-pointer"
+                            >
+                                Tham Gia
+                            </button>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -59,13 +90,31 @@ const Navbar = () => {
                     className="md:hidden glass border-t border-white/10"
                 >
                     <div className="px-4 pt-4 pb-8 space-y-4 flex flex-col items-center">
-                        <Link to="/" className="text-gray-300 hover:text-white text-lg">Trang Chủ</Link>
-                        <a href="/#about" className="text-gray-300 hover:text-white text-lg">Giới Thiệu</a>
-                        <a href="/#team" className="text-gray-300 hover:text-white text-lg">Đội Ngũ</a>
-                        <a href="/#features" className="text-gray-300 hover:text-white text-lg">Tính Năng</a>
-                        <button className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white px-6 py-3 rounded-full font-medium">
-                            Tham Gia
-                        </button>
+                        <Link to="/" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Trang Chủ</Link>
+                        <a href="/#about" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Giới Thiệu</a>
+                        <a href="/#team" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Đội Ngũ</a>
+                        <a href="/#features" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Tính Năng</a>
+
+                        {user ? (
+                            <div className="w-full flex flex-col items-center gap-4 pt-4 border-t border-white/10">
+                                <span className="text-cyan-400 font-medium flex items-center gap-2">
+                                    <User size={18} /> {user.email}
+                                </span>
+                                <button
+                                    onClick={() => { handleLogoutClick(); setIsOpen(false); }}
+                                    className="w-full bg-red-500/20 text-red-200 px-6 py-3 rounded-full font-medium hover:bg-red-500/30 transition-colors"
+                                >
+                                    Đăng Xuất
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => { handleLoginClick(); setIsOpen(false); }}
+                                className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white px-6 py-3 rounded-full font-medium"
+                            >
+                                Tham Gia
+                            </button>
+                        )}
                     </div>
                 </motion.div>
             )}
