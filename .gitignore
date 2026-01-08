@@ -1,0 +1,21 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+target/
+build/
+dist/
+out/
+node_modules/
+
+# IDE settings
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# Misc
+soleMates/
