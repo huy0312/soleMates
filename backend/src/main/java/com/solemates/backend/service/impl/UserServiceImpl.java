@@ -75,16 +75,18 @@ public class UserServiceImpl implements UserService {
             profile.setFullName(request.getFullName());
         if (request.getGender() != null)
             profile.setGender(request.getGender());
-        if (request.getBirthYear() != null)
-            profile.setBirthYear(request.getBirthYear());
-        if (request.getBio() != null)
+        if (request.getBirthDate() != null) {
+            profile.setBirthDate(request.getBirthDate());
+        }
+        if (request.getBio() != null) {
             profile.setBio(request.getBio());
-        if (request.getAvatarUrl() != null)
+        }
+        if (request.getAvatarUrl() != null) {
             profile.setAvatarUrl(request.getAvatarUrl());
+        }
 
-        memberProfileRepository.save(profile);
-
-        return mapToDTO(user, profile);
+        MemberProfile savedProfile = memberProfileRepository.save(profile);
+        return mapToDTO(user, savedProfile);
     }
 
     private UserDTO mapToDTO(User user, MemberProfile profile) {
@@ -94,7 +96,7 @@ public class UserServiceImpl implements UserService {
                 .role(user.getRole().getRoleName())
                 .fullName(profile != null ? profile.getFullName() : null)
                 .gender(profile != null ? profile.getGender() : null)
-                .birthYear(profile != null ? profile.getBirthYear() : null)
+                .birthDate(profile != null ? profile.getBirthDate() : null)
                 .joinDate(profile != null ? profile.getJoinDate() : null)
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)

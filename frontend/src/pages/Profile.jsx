@@ -23,7 +23,7 @@ const Profile = () => {
     const [formData, setFormData] = useState({
         fullName: '',
         gender: '',
-        birthYear: '',
+        birthDate: '',
         bio: '',
         avatarUrl: ''
     });
@@ -33,7 +33,7 @@ const Profile = () => {
             setFormData({
                 fullName: user.fullName || '',
                 gender: user.gender || 'OTHER',
-                birthYear: user.birthYear || '',
+                birthDate: user.birthDate || '',
                 bio: user.bio || '',
                 avatarUrl: user.avatarUrl || ''
             });
@@ -244,8 +244,8 @@ const Profile = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${activeTab === tab.id
-                                        ? 'bg-slate-700 text-white shadow-lg'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-slate-700 text-white shadow-lg'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 <tab.icon size={18} />
@@ -332,21 +332,11 @@ const Profile = () => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">Năm Sinh</label>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">Ngày Sinh</label>
                                             <input
-                                                type="number"
-                                                name="birthYear"
-                                                value={formData.birthYear}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">Avatar URL (hoặc dùng icon chỉnh sửa bên trái)</label>
-                                            <input
-                                                type="text"
-                                                name="avatarUrl"
-                                                value={formData.avatarUrl}
+                                                type="date"
+                                                name="birthDate"
+                                                value={formData.birthDate}
                                                 onChange={handleChange}
                                                 className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
                                             />
@@ -437,8 +427,8 @@ const Profile = () => {
                                                 key={frame.id}
                                                 onClick={() => !frame.locked && setSelectedFrame(frame.id)}
                                                 className={`p-3 rounded-xl flex items-center gap-3 cursor-pointer transition-colors ${selectedFrame === frame.id
-                                                        ? 'bg-red-50 border border-red-500 text-red-600'
-                                                        : 'hover:bg-gray-50 text-slate-700'
+                                                    ? 'bg-red-50 border border-red-500 text-red-600'
+                                                    : 'hover:bg-gray-50 text-slate-700'
                                                     } ${frame.locked ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
                                                 <div className={`w-12 h-12 rounded-full border-4 ${frame.color || 'border-gray-200'} flex items-center justify-center bg-gray-100`}>
