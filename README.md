@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # SoleMates Running Club Web Application
 
 This project is a web application for the SoleMates Running Club, featuring member management, Strava integration, and content management.
