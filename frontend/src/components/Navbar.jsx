@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, LogOut, User, ChevronDown } from 'lucide-react';
+import { Menu, X, LogOut, User, ChevronDown, Pentagon, Smartphone, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.png';
 import { Link, useNavigate } from 'react-router-dom';
@@ -91,25 +91,56 @@ const Navbar = () => {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                             transition={{ duration: 0.2 }}
-                                            className="absolute right-0 mt-2 w-56 glass rounded-xl overflow-hidden shadow-2xl border border-white/10"
+                                            className="absolute right-0 mt-2 w-80 glass rounded-xl overflow-hidden shadow-2xl border border-white/10"
                                         >
-                                            <div className="px-4 py-3 border-b border-white/10">
-                                                <p className="text-sm text-gray-400">Đăng nhập tài khoản</p>
-                                                <p className="text-sm font-medium text-white truncate text-ellipsis">{user.email}</p>
+                                            {/* Rank Card */}
+                                            <div className="p-4 border-b border-white/10 bg-white/5">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center border border-white/10 shadow-inner">
+                                                        <Pentagon size={24} className="text-slate-300 fill-slate-500/50" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-bold text-white mb-2">Bạc</h4>
+                                                        <div className="relative h-2 w-full bg-slate-700/50 rounded-full overflow-hidden mb-1">
+                                                            <div className="absolute left-0 top-0 h-full bg-red-500 w-[42%] rounded-full"></div>
+                                                        </div>
+                                                        <div className="flex justify-between text-xs text-gray-400">
+                                                            <span>42%</span>
+                                                            <span>1270/3000</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="py-1">
+
+                                            {/* Menu Items */}
+                                            <div className="py-2">
                                                 <Link
                                                     to="/profile"
-                                                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                                                     onClick={() => setIsDropdownOpen(false)}
                                                 >
-                                                    <User size={16} /> Hồ Sơ Cá Nhân
+                                                    <User size={18} className="text-gray-400" /> Trang cá nhân
                                                 </Link>
+                                                <Link
+                                                    to="#"
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                    onClick={() => setIsDropdownOpen(false)}
+                                                >
+                                                    <Smartphone size={18} className="text-gray-400" /> Liên kết ứng dụng đồng bộ kết quả
+                                                </Link>
+                                                <Link
+                                                    to="#"
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                    onClick={() => setIsDropdownOpen(false)}
+                                                >
+                                                    <HelpCircle size={18} className="text-gray-400" /> Hướng dẫn người mới
+                                                </Link>
+                                                <div className="border-t border-white/10 my-1"></div>
                                                 <button
                                                     onClick={handleLogoutClick}
-                                                    className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors"
+                                                    className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors"
                                                 >
-                                                    <LogOut size={16} /> Đăng Xuất
+                                                    <LogOut size={18} /> Đăng xuất
                                                 </button>
                                             </div>
                                         </motion.div>
