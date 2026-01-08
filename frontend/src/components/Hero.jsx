@@ -1,9 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import heroBg from '../assets/hero-bg-real.jpg';
 
 const Hero = () => {
+    const navigate = useNavigate();
+
     return (
         <section className="relative h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image with Overlay */}
@@ -35,7 +38,10 @@ const Hero = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
-                        <button className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-xl hover:shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer">
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-xl hover:shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                        >
                             Bắt Đầu Ngay <ArrowRight size={20} />
                         </button>
                         <button className="glass hover:bg-white/20 text-white px-8 py-4 rounded-full font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
