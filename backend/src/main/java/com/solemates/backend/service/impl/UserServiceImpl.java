@@ -84,6 +84,9 @@ public class UserServiceImpl implements UserService {
         if (request.getAvatarUrl() != null) {
             profile.setAvatarUrl(request.getAvatarUrl());
         }
+        if (request.getCoverPhotoUrl() != null) {
+            profile.setCoverPhotoUrl(request.getCoverPhotoUrl());
+        }
 
         MemberProfile savedProfile = memberProfileRepository.save(profile);
         return mapToDTO(user, savedProfile);
@@ -100,6 +103,7 @@ public class UserServiceImpl implements UserService {
                 .joinDate(profile != null ? profile.getJoinDate() : null)
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
+                .coverPhotoUrl(profile != null ? profile.getCoverPhotoUrl() : null)
                 .build();
     }
 }

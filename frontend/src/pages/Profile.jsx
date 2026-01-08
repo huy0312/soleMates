@@ -35,7 +35,8 @@ const Profile = () => {
                 gender: user.gender || 'OTHER',
                 birthDate: user.birthDate || '',
                 bio: user.bio || '',
-                avatarUrl: user.avatarUrl || ''
+                avatarUrl: user.avatarUrl || '',
+                coverPhotoUrl: user.coverPhotoUrl || ''
             });
             setPreviewImage(user.avatarUrl || '');
         }
@@ -83,11 +84,6 @@ const Profile = () => {
     };
 
     const handleSaveAvatar = async () => {
-        // In a real app, you would upload the file to cloud storage here.
-        // For this demo, we'll save the Data URL (base64) directly or just the preview logic.
-        // Since backend expects a URL string, we can update the formData.avatarUrl with this base64 string
-        // Note: Base64 strings are long, verify if backend column Definition = TEXT supports it (Postgres TEXT does).
-
         setIsLoading(true);
         const result = await updateProfile({ ...formData, avatarUrl: previewImage });
 
@@ -99,6 +95,28 @@ const Profile = () => {
             setMessage({ type: 'error', text: 'Không thể lưu ảnh đại diện.' });
         }
         setIsLoading(false);
+    };
+
+    const coverInputRef = useRef(null);
+
+    const handleCoverPhotoUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsLoading(true);
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64 = reader.result;
+            const result = await updateProfile({ ...formData, coverPhotoUrl: base64 });
+
+            if (result.success) {
+                setMessage({ type: 'success', text: 'Cập nhật ảnh bìa thành công!' });
+            } else {
+                setMessage({ type: 'error', text: 'Không thể cập nhật ảnh bìa.' });
+            }
+            setIsLoading(false);
+        };
+        reader.readAsDataURL(file);
     };
 
     if (!user) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
@@ -234,11 +252,26 @@ const Profile = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="glass rounded-2xl overflow-hidden relative h-48 sm:h-64"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-violet-900 to-slate-900">
-                            {/* Placeholder for real cover image */}
-                        </div>
-                        <button className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full text-sm flex items-center gap-2 backdrop-blur-sm transition-colors border border-white/10">
-                            <Camera size={16} /> Chỉnh sửa ảnh bìa
+                        {user.coverPhotoUrl ? (
+                            <img src={user.coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="absolute inset-0 bg-gradient-to-r from-violet-900 to-slate-900"></div>
+                        )}
+
+                        <input
+                            type="file"
+                            ref={coverInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleCoverPhotoUpload}
+                        />
+
+                        <button
+                            onClick={() => coverInputRef.current.click()}
+                            disabled={isLoading}
+                            className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full text-sm flex items-center gap-2 backdrop-blur-sm transition-colors border border-white/10 disabled:opacity-50"
+                        >
+                            <Camera size={16} /> {isLoading ? 'Đang tải...' : 'Chỉnh sửa ảnh bìa'}
                         </button>
                     </motion.div>
 

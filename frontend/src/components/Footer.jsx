@@ -1,55 +1,114 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Heart } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Instagram, Twitter, MessageCircle } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Footer = () => {
     return (
-        <footer className="bg-slate-950 pt-16 pb-8 border-t border-white/5">
+        <footer className="bg-slate-950 text-white pt-16 pb-8 border-t border-white/5 font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                    <div className="col-span-1 md:col-span-2">
-                        <div className="flex items-center gap-2 mb-6">
-                            <img src={logo} alt="Solemates" className="h-8 w-8 object-cover rounded-full" />
-                            <span className="font-bold text-xl text-white tracking-wider">SOLEMATES</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+
+                    {/* Column 1: Brand & Contact */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="bg-white text-black font-bold px-2 py-1 text-xl tracking-tighter">DO IT</div>
+                            <div className="text-sm font-light leading-none">today<br />everyday</div>
                         </div>
-                        <p className="text-gray-400 max-w-sm">
-                            Trao quyền cho người chạy bộ ở mọi trình độ để đạt được mục tiêu của họ thông qua cộng đồng, công nghệ và đam mê.
-                        </p>
+
+                        <div>
+                            <h3 className="text-gray-500 uppercase text-xs font-bold mb-4 tracking-wider">Liên hệ</h3>
+                            <p className="text-sm text-gray-300 font-bold mb-2 uppercase">
+                                CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ SOLEMATES
+                            </p>
+                            <div className="space-y-2 text-sm text-gray-400">
+                                <p className="flex items-center gap-2">
+                                    <span className="w-4 h-4 rounded-full border border-gray-600 flex items-center justify-center text-[10px]">i</span>
+                                    MST: 0111017464
+                                </p>
+                                <p className="flex items-center gap-2">
+                                    <Mail size={16} />
+                                    support@solemates.com
+                                </p>
+                                <p className="flex items-center gap-2">
+                                    <Phone size={16} />
+                                    02473030868
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <h4 className="text-white font-bold mb-6">Khám Phá</h4>
-                        <ul className="space-y-4">
-                            <li><a href="#" className="text-gray-400 hover:text-cyan-400 transition-colors">Trang Chủ</a></li>
-                            <li><a href="#about" className="text-gray-400 hover:text-cyan-400 transition-colors">Về Chúng Tôi</a></li>
-                            <li><a href="#team" className="text-gray-400 hover:text-cyan-400 transition-colors">Đội Ngũ</a></li>
-                            <li><a href="#" className="text-gray-400 hover:text-cyan-400 transition-colors">Tuyển Dụng</a></li>
+                    {/* Column 2: Fanpage & Apps */}
+                    <div className="space-y-6">
+                        <h3 className="text-gray-500 uppercase text-xs font-bold tracking-wider">Fanpage</h3>
+                        <div className="h-32 bg-slate-900 rounded-lg border border-white/10 flex items-center justify-center relative overflow-hidden group cursor-pointer">
+                            <img
+                                src="https://images.unsplash.com/photo-1533561052604-c3beb2d73ff2?auto=format&fit=crop&q=80&w=400"
+                                alt="Fanpage Cover"
+                                className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-opacity"
+                            />
+                            <div className="relative z-10 flex items-center gap-2">
+                                <Facebook className="text-white" />
+                                <span className="font-bold">Solemates Running</span>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button className="flex-1 bg-black border border-white/20 rounded-lg p-2 flex items-center justify-center gap-2 hover:bg-white/5 transition-colors">
+                                <div className="text-left">
+                                    <div className="text-[10px] text-gray-400 leading-none">Download on the</div>
+                                    <div className="text-sm font-bold">App Store</div>
+                                </div>
+                            </button>
+                            <button className="flex-1 bg-black border border-white/20 rounded-lg p-2 flex items-center justify-center gap-2 hover:bg-white/5 transition-colors">
+                                <div className="text-left">
+                                    <div className="text-[10px] text-gray-400 leading-none">GET IT ON</div>
+                                    <div className="text-sm font-bold">Google Play</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Column 3: Policy */}
+                    <div className="space-y-6">
+                        <h3 className="text-gray-500 uppercase text-xs font-bold tracking-wider">Chính sách</h3>
+                        <ul className="space-y-3 text-sm text-gray-400">
+                            <li><a href="#" className="hover:text-white transition-colors">Bảo mật thông tin</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Thanh toán</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Giao hàng</a></li>
                         </ul>
+
+                        <div className="pt-4 space-y-4">
+                            <div>
+                                <p className="text-[10px] text-gray-500 mb-1 uppercase tracking-wider">Compatible with</p>
+                                <div className="text-xl font-bold italic tracking-tighter text-orange-500">STRAVA</div>
+                            </div>
+                            <div>
+                                <div className="text-lg font-bold text-blue-500 flex items-center gap-1">
+                                    VN<span className="text-red-500">PAY</span><span className="text-xs text-gray-500 font-normal not-italic ml-1">QR</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <h4 className="text-white font-bold mb-6">Kết Nối</h4>
-                        <div className="flex space-x-4">
-                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-cyan-500 hover:text-white transition-all">
-                                <Facebook size={20} />
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-violet-500 hover:text-white transition-all">
-                                <Instagram size={20} />
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-cyan-500 hover:text-white transition-all">
-                                <Twitter size={20} />
-                            </a>
-                        </div>
+                    {/* Column 4: Guide & Support */}
+                    <div className="space-y-6">
+                        <h3 className="text-gray-500 uppercase text-xs font-bold tracking-wider">Hướng dẫn</h3>
+                        <ul className="space-y-3 text-sm text-gray-400">
+                            <li><a href="#" className="hover:text-white transition-colors">Đăng nhập/Đăng kí</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Kết nối ứng dụng đồng bộ</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Tham gia giải đấu</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Theo dõi tiến độ</a></li>
+                        </ul>
+
+                        <button className="w-full border border-white/20 rounded-lg p-3 flex items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
+                            <MessageCircle className="text-white group-hover:scale-110 transition-transform" />
+                            <span className="font-bold">Hỗ trợ khách hàng</span>
+                        </button>
                     </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center">
-                    <p className="text-gray-500 text-sm">
-                        &copy; {new Date().getFullYear()} Solemates Running Club. Đã đăng ký bản quyền.
-                    </p>
-                    <p className="text-gray-500 text-sm flex items-center gap-1 mt-4 md:mt-0">
-                        Được làm với <Heart size={14} className="text-red-500 fill-red-500" /> bởi Solemates Team
-                    </p>
+                <div className="mt-16 pt-8 border-t border-white/10 text-center text-xs text-gray-600">
+                    <p>&copy; Copyright 2026 Solemates. All rights reserved.</p>
                 </div>
             </div>
         </footer>
