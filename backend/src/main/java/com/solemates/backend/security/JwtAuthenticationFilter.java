@@ -1,5 +1,8 @@
 package com.solemates.backend.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String userEmail;
+        String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -38,7 +41,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        userEmail = jwtUtils.extractUsername(jwt);
+        try {
+            userEmail = jwtUtils.extractUsername(jwt);
+        } catch (ExpiredJwtException e) {
+            // Log the exception but allow the request to proceed anonymously
+            // The SecurityContext will remain empty, leading to 401/403 if required
+            logger.warn("JWT Token has expired");
+            userEmail = null;
+        } catch (MalformedJwtException | IllegalArgumentException e) {
+            logger.warn("Invalid JWT Token");
+            userEmail = null;
+        } catch (Exception e) {
+            logger.error("Could not parse JWT Token", e);
+            userEmail = null;
+        }
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);

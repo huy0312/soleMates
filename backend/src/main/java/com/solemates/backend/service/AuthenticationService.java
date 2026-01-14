@@ -9,7 +9,10 @@ import com.solemates.backend.model.User;
 import com.solemates.backend.repository.MemberProfileRepository;
 import com.solemates.backend.repository.RoleRepository;
 import com.solemates.backend.repository.UserRepository;
+import com.solemates.backend.repository.UserRepository;
 import com.solemates.backend.security.JwtUtils;
+import com.solemates.backend.model.VerificationToken;
+import com.solemates.backend.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+
+import java.util.Collections;
+import java.util.UUID;
+import java.time.LocalDateTime;
 
 import com.solemates.backend.enums.UserRole;
 
@@ -29,6 +36,8 @@ public class AuthenticationService {
         private final PasswordEncoder passwordEncoder;
         private final JwtUtils jwtUtils;
         private final AuthenticationManager authenticationManager;
+        private final VerificationTokenRepository verificationTokenRepository;
+        private final EmailService emailService;
 
         public AuthenticationResponse register(RegisterRequest request) {
                 Role role = roleRepository.findByRoleName(UserRole.MEMBER)
@@ -38,9 +47,21 @@ public class AuthenticationService {
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))
                                 .role(role)
-                                .status(true)
+                                .status(false) // Disable until verified
                                 .build();
                 userRepository.save(user);
+
+                // Create verification token
+                String token = UUID.randomUUID().toString();
+                VerificationToken verificationToken = VerificationToken.builder()
+                                .token(token)
+                                .user(user)
+                                .expiryDate(LocalDateTime.now().plusHours(24))
+                                .build();
+                verificationTokenRepository.save(verificationToken);
+
+                // Send verification email
+                emailService.sendVerificationEmail(user.getEmail(), token);
 
                 var profile = MemberProfile.builder()
                                 .user(user)
@@ -72,5 +93,21 @@ public class AuthenticationService {
                 return AuthenticationResponse.builder()
                                 .token(jwtToken)
                                 .build();
+        }
+
+        public String verifyAccount(String token) {
+                VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
+                                .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+                if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                        throw new RuntimeException("Token expired");
+                }
+
+                User user = verificationToken.getUser();
+                user.setStatus(true);
+                userRepository.save(user);
+                verificationTokenRepository.delete(verificationToken);
+
+                return "Account verified successfully. You can now login.";
         }
 }

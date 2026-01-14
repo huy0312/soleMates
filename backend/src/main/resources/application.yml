@@ -8,8 +8,27 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
+    defer-datasource-initialization: false
+  sql:
+    init:
+      mode: never
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:amshuuhuy10@gmail.com}
+    password: ${MAIL_PASSWORD:ixbh ztxv vzgt yelu}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+strava:
+  client-id: ${STRAVA_CLIENT_ID:195277}
+  client-secret: ${STRAVA_CLIENT_SECRET:f1725946bfb847ec0e3d67e6fce6d3535f47ceba}

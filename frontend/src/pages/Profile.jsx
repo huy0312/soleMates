@@ -1,17 +1,22 @@
+// I have added the logic to list the recent activities.
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     User, Save, Edit2, Calendar, Mail, FileText, ImageIcon,
     MapPin, Users, Award, ShoppingBag, Settings, Camera, ChevronLeft, ChevronRight,
-    X, Upload, Lock, Check, Circle
+    X, Upload, Lock, Check, Circle, Link as LinkIcon
 } from 'lucide-react';
+import api from '../api/axios';
+
+import ActivityCalendar from '../components/ActivityCalendar';
 
 const Profile = () => {
     const { user, updateProfile } = useAuth();
     const [activeTab, setActiveTab] = useState('achievements');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [isLoading, setIsLoading] = useState(false);
+    const [activities, setActivities] = useState([]);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,23 +27,54 @@ const Profile = () => {
     // Form State
     const [formData, setFormData] = useState({
         fullName: '',
+        email: '',
         gender: '',
         birthDate: '',
         bio: '',
-        avatarUrl: ''
+        avatarUrl: '',
+        address: '',
+        telephone: '',
+        showEmail: false,
+        showPhone: false,
+        showAddress: false,
+        showBirthday: false
     });
 
     useEffect(() => {
         if (user) {
             setFormData({
                 fullName: user.fullName || '',
+                email: user.email || '',
                 gender: user.gender || 'OTHER',
                 birthDate: user.birthDate || '',
                 bio: user.bio || '',
                 avatarUrl: user.avatarUrl || '',
-                coverPhotoUrl: user.coverPhotoUrl || ''
+                coverPhotoUrl: user.coverPhotoUrl || '',
+                address: user.address || '',
+                telephone: user.telephone || '',
+                showEmail: user.showEmail || false,
+                showPhone: user.showPhone || false,
+                showAddress: user.showAddress || false,
+                showBirthday: user.showBirthday || false
             });
             setPreviewImage(user.avatarUrl || '');
+
+            // Fetch Activities
+            const fetchAllActivities = async () => {
+                try {
+                    // Try to fetch all recent activities (e.g. current year)
+                    // We might need a new endpoint or reused param.
+                    // For now, let's fetch page 1-2 to cover most recent months
+                    // Or implement a Loop if needed.
+                    const res = await api.get(`/strava/activities?year=${new Date().getFullYear()}&page=1`);
+                    if (res.data) {
+                        setActivities(res.data);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch activities for calendar", error);
+                }
+            };
+            fetchAllActivities();
         }
     }, [user]);
 
@@ -53,8 +89,11 @@ const Profile = () => {
     }, [message]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -121,40 +160,36 @@ const Profile = () => {
 
     if (!user) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
 
-    // Mock Data for Achievements
-    const achievements = [
-        {
-            id: 1,
-            title: "Đêm Hội Trăng Rằm",
-            type: "Chạy bộ",
-            points: "300 điểm thưởng",
-            image: "https://images.unsplash.com/photo-1533561052604-c3beb2d73ff2?auto=format&fit=crop&q=80&w=400",
-            status: "Sắp diễn ra"
-        },
-        {
-            id: 2,
-            title: "Thập Linh Việt - Trâu Vàng",
-            type: "Chạy bộ",
-            points: "300 điểm thưởng",
-            image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=400",
-            status: "Đang diễn ra"
-        },
-        {
-            id: 3,
-            title: "Hà Nội Marathon",
-            type: "Chạy bộ",
-            points: "500 điểm thưởng",
-            image: "https://images.unsplash.com/photo-1552674605-5d28c4a11843?auto=format&fit=crop&q=80&w=400",
-            status: "Đã đăng ký"
-        }
-    ];
-
     const frames = [
         { id: 'none', label: 'Không sử dụng khung', locked: false },
-        { id: 'bronze', label: 'Khung Đồng', sub: 'Cấp độ đạt Đồng', locked: true, color: 'border-orange-400' },
-        { id: 'silver', label: 'Khung Bạc', sub: 'Cấp độ đạt Bạc', locked: true, color: 'border-slate-300' },
-        { id: 'gold', label: 'Khung Vàng', sub: 'Cấp độ đạt Vàng', locked: true, color: 'border-yellow-400' },
-        { id: 'diamond', label: 'Khung Kim Cương', sub: 'Cấp độ đạt Kim Cương', locked: true, color: 'border-cyan-400' },
+        {
+            id: 'bronze',
+            label: 'Khung Đồng',
+            sub: 'Cấp độ đạt Đồng',
+            locked: (user.points || 0) < 300,
+            styleClass: 'bg-gradient-to-tr from-[#8B4513] via-[#CD7F32] to-[#8B4513] shadow-lg shadow-orange-900/40'
+        },
+        {
+            id: 'silver',
+            label: 'Khung Bạc',
+            sub: 'Cấp độ đạt Bạc',
+            locked: (user.points || 0) < 1500,
+            styleClass: 'bg-gradient-to-tr from-[#708090] via-[#E2E8F0] to-[#708090] shadow-lg shadow-slate-400/40'
+        },
+        {
+            id: 'gold',
+            label: 'Khung Vàng',
+            sub: 'Cấp độ đạt Vàng',
+            locked: (user.points || 0) < 3000,
+            styleClass: 'bg-gradient-to-tr from-[#B8860B] via-[#FFD700] to-[#B8860B] shadow-[0_0_15px_rgba(255,215,0,0.6)]'
+        },
+        {
+            id: 'diamond',
+            label: 'Khung Kim Cương',
+            sub: 'Cấp độ đạt Kim Cương',
+            locked: (user.points || 0) < 5000,
+            styleClass: 'bg-gradient-to-tr from-[#008B8B] via-[#00FFFF] to-[#008B8B] shadow-[0_0_20px_rgba(0,255,255,0.6)]'
+        },
     ];
 
     return (
@@ -199,47 +234,22 @@ const Profile = () => {
 
                         <div className="px-4 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-6 flex items-center gap-2">
                             <Award size={14} className="text-amber-400" />
-                            <span className="text-amber-400 font-medium text-sm">Hạng Bạc</span>
+                            <span className="text-amber-400 font-medium text-sm">{user.rank || 'Thành viên'} ({user.points || 0} điểm)</span>
                         </div>
 
                         <div className="w-full border-t border-white/10 pt-4 flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
-                            <Users size={16} />
-                            <span>1 bạn bè</span>
+                            {/* Friends Count Placeholder - Hidden until implemented */}
+                            {/* <Users size={16} />
+                            <span>0 bạn bè</span> */}
                         </div>
 
-                        <div className="text-xs text-gray-500">
-                            Thành viên từ: {user.joinDate ? new Date(user.joinDate).toLocaleDateString('vi-VN') : '01/2026'}
-                        </div>
-                    </motion.div>
-
-                    {/* Activity Summary Card */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="glass rounded-2xl p-6"
-                    >
-                        <div className="flex justify-between items-center mb-4">
-                            <div>
-                                <h3 className="text-lg font-bold text-white">1 hoạt động</h3>
-                                <p className="text-xs text-gray-400">Trong tháng này</p>
-                            </div>
-                            <span className="text-xs text-red-400 cursor-pointer hover:underline">Tất cả hoạt động</span>
+                        <div className="text-xs text-gray-500 mb-6">
+                            Thành viên từ: {user.joinDate ? new Date(user.joinDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
                         </div>
 
-                        {/* Mini Calendar Mock */}
-                        <div className="bg-slate-800/50 rounded-xl p-4">
-                            <div className="flex justify-between items-center text-white mb-4">
-                                <button><ChevronLeft size={16} /></button>
-                                <span className="text-sm font-medium">Tháng 01/2026</span>
-                                <button><ChevronRight size={16} /></button>
-                            </div>
-                            <div className="grid grid-cols-7 gap-2 text-center text-xs text-gray-400">
-                                <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-                                <span className="opacity-30">29</span><span className="opacity-30">30</span>
-                                <span className="bg-red-500/20 text-red-400 rounded-full w-6 h-6 flex items-center justify-center mx-auto">1</span>
-                                <span>2</span><span>3</span><span>4</span><span>5</span>
-                            </div>
+                        {/* Activity Calendar Widget - Compact Mode */}
+                        <div className="w-full border-t border-white/10 pt-6">
+                            <ActivityCalendar activities={activities} />
                         </div>
                     </motion.div>
                 </div>
@@ -280,7 +290,7 @@ const Profile = () => {
                         {[
                             { id: 'achievements', label: 'Thành tích', icon: Award },
                             { id: 'friends', label: 'Bạn bè', icon: Users },
-                            { id: 'edit', label: 'Chỉnh sửa thông tin', icon: Settings },
+                            { id: 'edit', label: 'Thông tin cá nhân', icon: Settings },
                             { id: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
                         ].map((tab) => (
                             <button
@@ -305,106 +315,201 @@ const Profile = () => {
                         transition={{ duration: 0.2 }}
                     >
                         {activeTab === 'achievements' && (
-                            <div className="space-y-6">
-                                <div className="flex gap-6 border-b border-white/10 pb-4">
-                                    <button className="text-red-500 font-medium border-b-2 border-red-500 pb-4 -mb-[17px]">Giải đấu</button>
-                                    <button className="text-gray-400 hover:text-white pb-4">Thử thách</button>
-                                </div>
-                                <div className="flex gap-2">
-                                    <span className="px-4 py-1 rounded-full border border-red-500 text-red-500 text-sm bg-red-500/10 cursor-pointer">Tất cả</span>
-                                    <span className="px-4 py-1 rounded-full border border-white/10 text-gray-400 text-sm hover:bg-white/5 cursor-pointer">Đang tham gia</span>
-                                    <span className="px-4 py-1 rounded-full border border-white/10 text-gray-400 text-sm hover:bg-white/5 cursor-pointer">Đã kết thúc</span>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {achievements.map((item) => (
-                                        <div key={item.id} className="glass rounded-2xl overflow-hidden group hover:bg-white/5 transition-colors">
-                                            <div className="h-48 overflow-hidden relative">
-                                                <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs text-white border border-white/10">
-                                                    {item.status}
-                                                </div>
-                                            </div>
-                                            <div className="p-5">
-                                                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                                                <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
-                                                    <div className="flex items-center gap-1">
-                                                        <MapPin size={14} /> Chạy bộ
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <Award size={14} className="text-yellow-500" /> {item.points}
-                                                    </div>
-                                                </div>
-                                                <button className="w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm font-medium border border-white/10 transition-colors">
-                                                    Xem chi tiết
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div className="glass rounded-2xl p-12 text-center text-gray-400">
+                                <Award size={48} className="mx-auto mb-4 opacity-50" />
+                                <h3 className="text-xl font-medium text-white mb-2">Chưa có thành tích</h3>
+                                <p>Hãy tham gia các thử thách để nhận huy chương!</p>
                             </div>
                         )}
 
                         {activeTab === 'edit' && (
-                            <div className="glass rounded-2xl p-8">
-                                <h3 className="text-2xl font-bold text-white mb-6">Chỉnh Sửa Hồ Sơ</h3>
+                            <div className="space-y-6">
+                                <div className="glass rounded-2xl p-8">
+                                    <h3 className="text-2xl font-bold text-white mb-6">Thông tin cá nhân</h3>
 
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">Họ và Tên</label>
-                                            <input
-                                                type="text"
-                                                name="fullName"
-                                                value={formData.fullName}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
-                                            />
+                                    <form onSubmit={handleSubmit} className="space-y-6">
+                                        <h4 className="text-lg font-bold text-white mb-4">Hồ sơ</h4>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">Tên</label>
+                                                <input
+                                                    type="text"
+                                                    name="fullName"
+                                                    value={formData.fullName}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
+                                                    placeholder="Tên của bạn"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    readOnly
+                                                    className="w-full px-4 py-3 bg-slate-700/50 border border-white/10 rounded-xl text-gray-400 cursor-not-allowed"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">Ngày sinh</label>
+                                                <input
+                                                    type="date"
+                                                    name="birthDate"
+                                                    value={formData.birthDate}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-400 mb-2">Giới tính</label>
+                                                <div className="relative">
+                                                    <select
+                                                        name="gender"
+                                                        value={formData.gender}
+                                                        onChange={handleChange}
+                                                        className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white appearance-none"
+                                                    >
+                                                        <option value="MALE" className="bg-slate-800">Nam</option>
+                                                        <option value="FEMALE" className="bg-slate-800">Nữ</option>
+                                                        <option value="OTHER" className="bg-slate-800">Khác</option>
+                                                    </select>
+                                                    <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 text-gray-400 pointer-events-none" size={16} />
+                                                </div>
+                                            </div>
                                         </div>
+
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">Giới Tính</label>
-                                            <select
-                                                name="gender"
-                                                value={formData.gender}
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">Địa chỉ</label>
+                                            <div className="relative">
+                                                <select
+                                                    name="address"
+                                                    value={formData.address || ''}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white appearance-none"
+                                                >
+                                                    <option value="" className="bg-slate-800">Chọn thành phố</option>
+                                                    <option value="Hà Nội" className="bg-slate-800">Thành phố Hà Nội</option>
+                                                    <option value="Hồ Chí Minh" className="bg-slate-800">Thành phố Hồ Chí Minh</option>
+                                                    <option value="Đà Nẵng" className="bg-slate-800">Thành phố Đà Nẵng</option>
+                                                    <option value="Khác" className="bg-slate-800">Khác</option>
+                                                </select>
+                                                <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 text-gray-400 pointer-events-none" size={16} />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-400 mb-2">Giới thiệu</label>
+                                            <textarea
+                                                name="bio"
+                                                value={formData.bio}
                                                 onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
+                                                rows="4"
+                                                placeholder="Giới thiệu ngắn về bạn"
+                                                className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white resize-none"
+                                            ></textarea>
+                                        </div>
+
+                                        {/* Toggles */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                                            <div className="flex items-center gap-3">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="showEmail"
+                                                        checked={formData.showEmail}
+                                                        onChange={handleChange}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                                                </label>
+                                                <span className="text-sm font-medium text-gray-300">Hiển thị email</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="showPhone"
+                                                        checked={formData.showPhone}
+                                                        onChange={handleChange}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                                                </label>
+                                                <span className="text-sm font-medium text-gray-300">Hiển thị số điện thoại</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="showAddress"
+                                                        checked={formData.showAddress}
+                                                        onChange={handleChange}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                                                </label>
+                                                <span className="text-sm font-medium text-gray-300">Hiển thị địa chỉ</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="showBirthday"
+                                                        checked={formData.showBirthday}
+                                                        onChange={handleChange}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                                                </label>
+                                                <span className="text-sm font-medium text-gray-300">Hiển thị sinh nhật</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end pt-4 gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData({
+                                                        fullName: user.fullName || '',
+                                                        email: user.email || '',
+                                                        gender: user.gender || 'OTHER',
+                                                        birthDate: user.birthDate || '',
+                                                        bio: user.bio || '',
+                                                        avatarUrl: user.avatarUrl || '',
+                                                        coverPhotoUrl: user.coverPhotoUrl || '',
+                                                        address: user.address || '',
+                                                        telephone: user.telephone || '',
+                                                        showEmail: user.showEmail || false,
+                                                        showPhone: user.showPhone || false,
+                                                        showAddress: user.showAddress || false,
+                                                        showBirthday: user.showBirthday || false
+                                                    });
+                                                }}
+                                                className="px-6 py-2 rounded-full text-slate-400 font-medium hover:bg-white/5 transition-colors"
                                             >
-                                                <option value="MALE" className="bg-slate-800">Nam</option>
-                                                <option value="FEMALE" className="bg-slate-800">Nữ</option>
-                                                <option value="OTHER" className="bg-slate-800">Khác</option>
-                                            </select>
+                                                Huỷ
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading}
+                                                className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-900/20"
+                                            >
+                                                {isLoading ? 'Đang Lưu...' : 'Cập nhật'}
+                                            </button>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-2">Ngày Sinh</label>
-                                            <input
-                                                type="date"
-                                                name="birthDate"
-                                                value={formData.birthDate}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-2">Giới Thiệu (Bio)</label>
-                                        <textarea
-                                            name="bio"
-                                            value={formData.bio}
-                                            onChange={handleChange}
-                                            rows="4"
-                                            className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white resize-none"
-                                        ></textarea>
-                                    </div>
-                                    <div className="flex justify-end pt-4">
-                                        <button
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 transition-all shadow-lg shadow-violet-500/20"
-                                        >
-                                            {isLoading ? 'Đang Lưu...' : <><Save size={18} /> Lưu Thay Đổi</>}
+                                    </form>
+
+                                    <div className="mt-8 pt-8 border-t border-white/10 flex justify-between items-center">
+                                        <div className="text-gray-400 text-sm">Vô hiệu hoá tài khoản</div>
+                                        <button className="border border-[#D32F2F] text-[#D32F2F] px-6 py-2 rounded-full font-medium hover:bg-[#D32F2F]/10 transition-colors">
+                                            Đổi mật khẩu
                                         </button>
                                     </div>
-                                </form>
+                                </div>
+                                <ConnectionsTab />
                             </div>
                         )}
 
@@ -423,6 +528,7 @@ const Profile = () => {
                                 <p>Tham gia các giải chạy để nhận huy chương và vật phẩm!</p>
                             </div>
                         )}
+
                     </motion.div>
                 </div>
             </div>
@@ -474,8 +580,8 @@ const Profile = () => {
                                                     : 'hover:bg-gray-50 text-slate-700'
                                                     } ${frame.locked ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
-                                                <div className={`w-12 h-12 rounded-full border-4 ${frame.color || 'border-gray-200'} flex items-center justify-center bg-gray-100`}>
-                                                    {frame.id === 'none' && <X size={20} className="text-gray-400" />}
+                                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${frame.id === 'none' ? 'bg-gray-100 border-2 border-gray-200' : `${frame.styleClass} p-[3px]`}`}>
+                                                    {frame.id === 'none' ? <X size={20} className="text-gray-400" /> : <div className="w-full h-full bg-white rounded-full" />}
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="font-medium text-sm">{frame.label}</p>
@@ -502,7 +608,10 @@ const Profile = () => {
                                         </div>
                                         {/* Frame Overlay Mockup */}
                                         {selectedFrame !== 'none' && (
-                                            <div className="absolute -inset-2 rounded-full border-8 border-transparent pointer-events-none"></div>
+                                            <div
+                                                className={`absolute -inset-3 rounded-full ${frames.find(f => f.id === selectedFrame)?.styleClass || ''} pointer-events-none`}
+                                                style={{ mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'exclude', WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', WebkitMaskComposite: 'xor', padding: '10px' }}
+                                            ></div>
                                         )}
                                     </div>
 
@@ -543,6 +652,442 @@ const Profile = () => {
                 )}
             </AnimatePresence>
         </div>
+    );
+};
+
+const ConnectionsTab = () => {
+    const [status, setStatus] = useState({ connected: false, loading: true, profileUrl: null, stravaId: null });
+    const [clientId, setClientId] = useState(null);
+    const [stats, setStats] = useState(null);
+    const [activities, setActivities] = useState([]);
+    const [syncing, setSyncing] = useState(false);
+    const [selectedActivity, setSelectedActivity] = useState(null);
+
+    // Pagination & Filter State
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+
+    const handleActivityClick = async (activity) => {
+        setSelectedActivity(activity);
+        try {
+            const res = await api.get(`/strava/activities/${activity.id}`);
+            if (res.data && res.data.id) {
+                setSelectedActivity(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch activity details", error);
+        }
+    };
+
+    const fetchActivities = async (year, pageNum) => {
+        try {
+            const res = await api.get(`/strava/activities?year=${year}&page=${pageNum}`);
+            if (pageNum === 1) {
+                setActivities(res.data);
+            } else {
+                setActivities(prev => [...prev, ...res.data]);
+            }
+            if (res.data.length < 10) {
+                setHasMore(false);
+            } else {
+                setHasMore(true);
+            }
+        } catch (error) {
+            console.error("Failed to fetch activities", error);
+        }
+    };
+
+    useEffect(() => {
+        const checkStatus = async () => {
+            try {
+                const [statusRes, configRes] = await Promise.all([
+                    api.get('/strava/status'),
+                    api.get('/strava/config')
+                ]);
+                setStatus({
+                    connected: statusRes.data.connected,
+                    loading: false,
+                    profileUrl: statusRes.data.profileUrl,
+                    stravaId: statusRes.data.stravaId
+                });
+                setClientId(configRes.data.clientId);
+
+                if (statusRes.data.connected) {
+                    const statsRes = await api.get('/strava/stats');
+                    setStats(statsRes.data);
+                    // Initial fetch for activities
+                    fetchActivities(selectedYear, 1);
+                }
+            } catch (error) {
+                console.error("Failed to check strava status", error);
+                setStatus({ connected: false, loading: false });
+            }
+        };
+        checkStatus();
+    }, []);
+
+    const handleConnect = () => {
+        if (!clientId) {
+            toast.error("Lỗi cấu hình: Không tìm thấy Client ID.");
+            return;
+        }
+        const redirectUri = window.location.origin + '/strava/callback';
+        const scope = 'activity:read_all,profile:read_all';
+        window.location.href = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=force&scope=${scope}`;
+    };
+
+    const handleDisconnect = async () => {
+        if (window.confirm("Bạn có chắc chắn muốn ngắt kết nối với Strava?")) {
+            try {
+                await api.post('/strava/disconnect');
+                setStatus(prev => ({ ...prev, connected: false, profileUrl: null }));
+                setStats(null);
+                setActivities([]);
+            } catch (error) {
+                alert("Lỗi khi ngắt kết nối.");
+            }
+        }
+    };
+
+    const handleSync = async () => {
+        setSyncing(true);
+        try {
+            if (status.connected) {
+                const statsRes = await api.get('/strava/stats');
+                setStats(statsRes.data);
+                // Reset and re-fetch activities
+                setPage(1);
+                setActivities([]);
+                await fetchActivities(selectedYear, 1);
+            }
+            await new Promise(r => setTimeout(r, 1000));
+        } catch (error) {
+            console.error("Sync failed", error);
+        } finally {
+            setSyncing(false);
+        }
+    };
+
+    const handleYearChange = (e) => {
+        const year = parseInt(e.target.value);
+        setSelectedYear(year);
+        setPage(1);
+        setActivities([]);
+        fetchActivities(year, 1);
+    };
+
+    const loadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchActivities(selectedYear, nextPage);
+    };
+
+    if (status.loading) return <div className="text-white text-center p-8">Đang tải...</div>;
+
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 5 }, (_, i) => currentYear - i); // [2025, 2024, 2023, 2022, 2021]
+
+    return (
+        <div className="glass rounded-2xl p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-white">Kết nối ứng dụng</h3>
+                <button
+                    onClick={handleSync}
+                    disabled={syncing}
+                    className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                    <div className={`${syncing ? 'animate-spin' : ''}`}>
+                        <LinkIcon size={16} />
+                    </div>
+                    Đồng bộ dữ liệu
+                </button>
+            </div>
+
+            <div className="space-y-4">
+                {/* Strava Card */}
+                <div className="bg-white rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <div className="w-12 h-12 bg-[#FC4C02] rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0">
+                            S
+                        </div>
+                        <div className="overflow-hidden">
+                            {status.connected ? (
+                                <a
+                                    href={status.profileUrl || `https://www.strava.com/athletes/${status.stravaId}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-slate-600 hover:text-[#FC4C02] transition-colors truncate block text-sm sm:text-base font-medium"
+                                >
+                                    https://www.strava.com/athletes/{status.stravaId || '...'}
+                                </a>
+                            ) : (
+                                <div>
+                                    <h4 className="font-bold text-slate-800 text-lg">Strava</h4>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+                        {status.connected ? (
+                            <>
+                                <button
+                                    onClick={handleDisconnect}
+                                    className="bg-[#FC4C02] hover:bg-[#E34402] text-white px-6 py-2 rounded-full font-bold text-sm transition-colors shadow-lg shadow-orange-500/20 whitespace-nowrap"
+                                >
+                                    Ngắt kết nối Strava
+                                </button>
+                                <div className="flex items-center gap-2 text-slate-600 font-medium text-sm">
+                                    <div className="w-5 h-5 rounded-full border-[5px] border-[#FC4C02]"></div>
+                                    Mặc định
+                                </div>
+                            </>
+                        ) : (
+                            <button
+                                onClick={handleConnect}
+                                className="bg-[#FC4C02] hover:bg-[#E34402] text-white px-6 py-2 rounded-full font-bold text-sm transition-colors shadow-lg shadow-orange-500/20"
+                            >
+                                Kết nối
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Garmin Card (Placeholder) */}
+                <div className="bg-white rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 opacity-80">
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <div className="w-12 h-12 bg-[#000000] rounded-xl flex items-center justify-center text-white font-bold shrink-0">
+                            G
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-slate-800 text-lg">Garmin</h4>
+                        </div>
+                    </div>
+
+                    <div className="w-full md:w-auto flex justify-end">
+                        <button
+                            disabled
+                            className="bg-slate-800 text-white px-6 py-2 rounded-full font-bold text-sm transition-colors opacity-80 cursor-not-allowed"
+                        >
+                            Kết nối Garmin
+                        </button>
+                    </div>
+                </div>
+
+                {status.connected && stats && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/10">
+                            <h4 className="text-gray-400 text-sm mb-2">Chạy bộ (4 tuần qua)</h4>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <span className="text-2xl font-bold text-white">{(stats.recent_run_totals?.distance ? stats.recent_run_totals.distance / 1000 : 0).toFixed(1)}</span>
+                                    <span className="text-sm text-gray-400 ml-1">km</span>
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                    {stats.recent_run_totals?.count || 0} bài tập
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/10">
+                            <h4 className="text-gray-400 text-sm mb-2">Tổng chạy bộ (Năm nay)</h4>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <span className="text-2xl font-bold text-white">{(stats.ytd_run_totals?.distance ? stats.ytd_run_totals.distance / 1000 : 0).toFixed(1)}</span>
+                                    <span className="text-sm text-gray-400 ml-1">km</span>
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                    {stats.ytd_run_totals?.count || 0} bài tập
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/10">
+                            <h4 className="text-gray-400 text-sm mb-2">Tổng chạy bộ (Tất cả)</h4>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <span className="text-2xl font-bold text-white">{(stats.all_run_totals?.distance ? stats.all_run_totals.distance / 1000 : 0).toFixed(1)}</span>
+                                    <span className="text-sm text-gray-400 ml-1">km</span>
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                    {stats.all_run_totals?.count || 0} bài tập
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {status.connected && (
+                    <div className="space-y-6 mt-8">
+                        {/* Activities List Header & Filter */}
+                        <div className="flex justify-between items-center">
+                            <h4 className="text-xl font-bold text-white">Hoạt động</h4>
+                            <select
+                                value={selectedYear}
+                                onChange={handleYearChange}
+                                className="bg-slate-800 text-white border border-white/10 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-cyan-500"
+                            >
+                                {years.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Activities List */}
+                        <div className="space-y-4">
+                            {activities.length > 0 ? (
+                                <div className="space-y-2">
+                                    {activities.map((activity) => (
+                                        <div
+                                            key={activity.id}
+                                            onClick={() => handleActivityClick(activity)}
+                                            className="bg-slate-800/50 hover:bg-slate-700/50 transition-colors p-4 rounded-xl border border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-4 cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-[#FC4C02]/10 flex items-center justify-center text-[#FC4C02]">
+                                                    {activity.type === 'Run' ? <MapPin size={20} /> : <Circle size={20} />}
+                                                </div>
+                                                <div>
+                                                    <h5 className="font-bold text-white text-base">{activity.name}</h5>
+                                                    <p className="text-sm text-gray-400">
+                                                        {activity.start_date ? new Date(activity.start_date).toLocaleDateString('vi-VN') : ''} • {activity.start_date ? new Date(activity.start_date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-6 text-sm">
+                                                <div className="text-center">
+                                                    <p className="text-gray-400 text-xs uppercase">Khoảng cách</p>
+                                                    <p className="font-bold text-white">{(activity.distance ? activity.distance / 1000 : 0).toFixed(2)} km</p>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-gray-400 text-xs uppercase">Thời gian</p>
+                                                    <p className="font-bold text-white">
+                                                        {activity.moving_time ? Math.floor(activity.moving_time / 60) : 0}m {activity.moving_time ? activity.moving_time % 60 : 0}s
+                                                    </p>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-gray-400 text-xs uppercase">Pace</p>
+                                                    <p className="font-bold text-white">
+                                                        {activity.moving_time && activity.distance ? Math.floor((activity.moving_time / 60) / (activity.distance / 1000)) : 0}'
+                                                        {activity.moving_time && activity.distance ? Math.round(((activity.moving_time / 60) / (activity.distance / 1000) % 1) * 60) : 0}"/km
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    Không có hoạt động nào trong năm {selectedYear}
+                                </div>
+                            )}
+
+                            {/* Load More Button */}
+                            {activities.length > 0 && hasMore && (
+                                <div className="text-center pt-2">
+                                    <button
+                                        onClick={loadMore}
+                                        className="text-cyan-400 hover:text-cyan-300 font-medium text-sm transition-colors"
+                                    >
+                                        Xem thêm hoạt động cũ hơn
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Activity Detail Modal */}
+                <AnimatePresence>
+                    {selectedActivity && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                                onClick={() => setSelectedActivity(null)}
+                            />
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                className="bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden relative z-10 flex flex-col border border-white/10"
+                            >
+                                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-slate-800">
+                                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                        {selectedActivity.type === 'Run' ? <MapPin size={20} className="text-[#FC4C02]" /> : <Circle size={20} className="text-[#FC4C02]" />}
+                                        {selectedActivity.name}
+                                    </h3>
+                                    <button onClick={() => setSelectedActivity(null)} className="text-gray-400 hover:text-white">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+                                <div className="p-6 overflow-y-auto">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-gray-400 uppercase">Khoảng cách</p>
+                                            <p className="text-xl font-bold text-white">{(selectedActivity.distance ? selectedActivity.distance / 1000 : 0).toFixed(2)} km</p>
+                                        </div>
+                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-gray-400 uppercase">Thời gian</p>
+                                            <p className="text-xl font-bold text-white">
+                                                {selectedActivity.moving_time ? Math.floor(selectedActivity.moving_time / 60) : 0}m {selectedActivity.moving_time ? selectedActivity.moving_time % 60 : 0}s
+                                            </p>
+                                        </div>
+                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-gray-400 uppercase">Pace TB</p>
+                                            <p className="text-xl font-bold text-white">
+                                                {selectedActivity.moving_time && selectedActivity.distance ? Math.floor((selectedActivity.moving_time / 60) / (selectedActivity.distance / 1000)) : 0}'
+                                                {selectedActivity.moving_time && selectedActivity.distance ? Math.round(((selectedActivity.moving_time / 60) / (selectedActivity.distance / 1000) % 1) * 60) : 0}"
+                                            </p>
+                                        </div>
+                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-gray-400 uppercase">Elevation</p>
+                                            <p className="text-xl font-bold text-white">{selectedActivity.total_elevation_gain || 0} m</p>
+                                        </div>
+                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-gray-400 uppercase">Calories</p>
+                                            <p className="text-xl font-bold text-white">{selectedActivity.calories || '-'}</p>
+                                        </div>
+                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-gray-400 uppercase">Nhịp tim TB</p>
+                                            <p className="text-xl font-bold text-white">{selectedActivity.average_heartrate || '-'}</p>
+                                        </div>
+                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-gray-400 uppercase">Max Speed</p>
+                                            <p className="text-xl font-bold text-white">{(selectedActivity.max_speed ? selectedActivity.max_speed * 3.6 : 0).toFixed(1)} km/h</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Map Placeholder - Integrating real maps requires Mapbox/Google API Key */}
+                                    {selectedActivity.map?.summary_polyline && (
+                                        <div className="w-full h-64 bg-slate-800 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden relative">
+                                            {/* Note: In a real app, use Leaflet/Mapbox to render selectedActivity.map.summary_polyline */}
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                                                <MapPin size={32} className="mb-2 opacity-50" />
+                                                <span className="text-xs">Bản đồ hoạt động (Polyline Data Available)</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="mt-6 text-center">
+                                        <a
+                                            href={`https://www.strava.com/activities/${selectedActivity.id}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-2 text-sm text-[#FC4C02] hover:text-[#E34402] transition-colors"
+                                        >
+                                            Xem chi tiết trên Strava <LinkIcon size={14} />
+                                        </a>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </div >
     );
 };
 

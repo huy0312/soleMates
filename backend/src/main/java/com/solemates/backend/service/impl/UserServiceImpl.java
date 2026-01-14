@@ -87,12 +87,34 @@ public class UserServiceImpl implements UserService {
         if (request.getCoverPhotoUrl() != null) {
             profile.setCoverPhotoUrl(request.getCoverPhotoUrl());
         }
+        if (request.getAddress() != null)
+            profile.setAddress(request.getAddress());
+        if (request.getTelephone() != null)
+            profile.setTelephone(request.getTelephone());
+        if (request.getShowEmail() != null)
+            profile.setShowEmail(request.getShowEmail());
+        if (request.getShowPhone() != null)
+            profile.setShowPhone(request.getShowPhone());
+        if (request.getShowAddress() != null)
+            profile.setShowAddress(request.getShowAddress());
+        if (request.getShowBirthday() != null)
+            profile.setShowBirthday(request.getShowBirthday());
 
         MemberProfile savedProfile = memberProfileRepository.save(profile);
         return mapToDTO(user, savedProfile);
     }
 
     private UserDTO mapToDTO(User user, MemberProfile profile) {
+        // Calculate Rank
+        int points = profile != null && profile.getPoints() != null ? profile.getPoints() : 0;
+        String rank = "Thành viên";
+        if (points >= 3000)
+            rank = "Vàng";
+        else if (points >= 1500)
+            rank = "Bạc";
+        else if (points >= 300)
+            rank = "Đồng";
+
         return UserDTO.builder()
                 .id(user.getUserId())
                 .email(user.getEmail())
@@ -100,10 +122,18 @@ public class UserServiceImpl implements UserService {
                 .fullName(profile != null ? profile.getFullName() : null)
                 .gender(profile != null ? profile.getGender() : null)
                 .birthDate(profile != null ? profile.getBirthDate() : null)
-                .joinDate(profile != null ? profile.getJoinDate() : null)
+                .joinDate(user.getCreatedAt() != null ? user.getCreatedAt().toLocalDate() : null)
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
                 .coverPhotoUrl(profile != null ? profile.getCoverPhotoUrl() : null)
+                .address(profile != null ? profile.getAddress() : null)
+                .telephone(profile != null ? profile.getTelephone() : null)
+                .showEmail(profile != null && Boolean.TRUE.equals(profile.getShowEmail()))
+                .showPhone(profile != null && Boolean.TRUE.equals(profile.getShowPhone()))
+                .showAddress(profile != null && Boolean.TRUE.equals(profile.getShowAddress()))
+                .showBirthday(profile != null && Boolean.TRUE.equals(profile.getShowBirthday()))
+                .points(points)
+                .rank(rank)
                 .build();
     }
 }
