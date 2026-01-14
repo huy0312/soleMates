@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, AlertCircle, ArrowLeft, Chrome, Apple } from 'lucide-react';
+import loginBg from '../assets/login-bg.jpg';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -39,7 +40,7 @@ const Login = () => {
                 <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-8 text-white">
                     <div className="absolute inset-0">
                         <img
-                            src="https://images.unsplash.com/photo-1552674605-4694c042ce78?q=80&w=1974&auto=format&fit=crop"
+                            src={loginBg}
                             alt="Running Background"
                             className="w-full h-full object-cover opacity-60"
                         />
@@ -49,13 +50,13 @@ const Login = () => {
                     <div className="relative z-10">
                         <Link to="/" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md transition-all text-sm font-medium">
                             <ArrowLeft size={16} />
-                            Back to website
+                            Quay lại trang chủ
                         </Link>
                     </div>
 
                     <div className="relative z-10 mb-8">
-                        <h2 className="text-4xl font-bold mb-4">Capturing Moments,<br />Creating Memories</h2>
-                        <p className="text-gray-300">Join the community of runners and share your journey.</p>
+                        <h2 className="text-4xl font-bold mb-4">Ghi lại Khoảnh Khắc,<br />Kiến tạo Kỷ Niệm</h2>
+                        <p className="text-gray-300">Tham gia cộng đồng chạy bộ và chia sẻ hành trình của bạn.</p>
 
                         {/* Slider Dots Placeholder */}
                         <div className="flex gap-2 mt-6">
@@ -69,11 +70,11 @@ const Login = () => {
                 {/* Right Side - Form */}
                 <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col bg-[#1a1b2e] overflow-y-auto custom-scrollbar">
                     <div className="max-w-md w-full mx-auto h-full flex flex-col justify-center">
-                        <h2 className="text-3xl font-bold text-white mb-2">Welcome back</h2>
+                        <h2 className="text-3xl font-bold text-white mb-2">Chào mừng trở lại</h2>
                         <p className="text-gray-400 mb-8">
-                            Don't have an account?
+                            Chưa có tài khoản?
                             <Link to="/register" className="text-violet-400 hover:text-violet-300 ml-1 font-medium transition-colors">
-                                Sign up
+                                Đăng ký
                             </Link>
                         </p>
 
@@ -103,7 +104,7 @@ const Login = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-400">Password</label>
+                                    <label className="text-sm font-medium text-gray-400">Mật khẩu</label>
                                     <input
                                         type="password"
                                         value={password}
@@ -123,7 +124,7 @@ const Login = () => {
                                 {isLoading ? (
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
                                 ) : (
-                                    'Log in'
+                                    'Đăng nhập'
                                 )}
                             </button>
 
@@ -132,7 +133,7 @@ const Login = () => {
                                     <div className="w-full border-t border-gray-700/50"></div>
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-[#1a1b2e] px-2 text-gray-500">Or continue with</span>
+                                    <span className="bg-[#1a1b2e] px-2 text-gray-500">Hoặc tiếp tục với</span>
                                 </div>
                             </div>
 

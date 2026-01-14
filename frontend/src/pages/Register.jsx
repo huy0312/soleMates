@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle, ArrowLeft, Chrome, Apple } from 'lucide-react';
+import loginBg from '../assets/login-bg.jpg';
 
 const Register = () => {
     const [fullName, setFullName] = useState('');
@@ -20,12 +21,12 @@ const Register = () => {
         setError('');
 
         if (password !== confirmPassword) {
-            setError('Passwords do not match');
+            setError('Mật khẩu nhập lại không khớp');
             return;
         }
 
         if (!agreed) {
-            setError('You must agree to the Terms & Conditions');
+            setError('Bạn phải đồng ý với Điều khoản & Điều kiện');
             return;
         }
 
@@ -52,7 +53,7 @@ const Register = () => {
                     <div className="w-1/2 hidden lg:block relative">
                         <div className="absolute inset-0">
                             <img
-                                src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop"
+                                src={loginBg}
                                 alt="Running Background"
                                 className="w-full h-full object-cover opacity-60"
                             />
@@ -61,7 +62,7 @@ const Register = () => {
                         <div className="relative z-10 p-8">
                             <Link to="/" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md transition-all text-white text-sm font-medium">
                                 <ArrowLeft size={16} />
-                                Back to website
+                                Quay lại trang chủ
                             </Link>
                         </div>
                     </div>
@@ -74,12 +75,12 @@ const Register = () => {
                         >
                             <CheckCircle size={80} className="text-green-400 mb-6" />
                         </motion.div>
-                        <h2 className="text-3xl font-bold mb-4">Account Created!</h2>
+                        <h2 className="text-3xl font-bold mb-4">Đăng ký thành công!</h2>
                         <p className="text-gray-400 mb-8 max-w-sm">
-                            We've sent a verification link to your email. Please check your inbox to activate your account.
+                            Chúng tôi đã gửi liên kết xác thực đến email của bạn. Vui lòng kiểm tra hộp thư đến để kích hoạt tài khoản.
                         </p>
                         <Link to="/login" className="px-8 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-medium transition-all shadow-lg shadow-violet-600/20">
-                            Go to Login
+                            Quay lại Đăng nhập
                         </Link>
                     </div>
                 </motion.div>
@@ -99,7 +100,7 @@ const Register = () => {
                 <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-8 text-white">
                     <div className="absolute inset-0">
                         <img
-                            src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop"
+                            src={loginBg}
                             alt="Running Background"
                             className="w-full h-full object-cover opacity-60"
                         />
@@ -109,13 +110,13 @@ const Register = () => {
                     <div className="relative z-10">
                         <Link to="/" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md transition-all text-sm font-medium">
                             <ArrowLeft size={16} />
-                            Back to website
+                            Quay lại trang chủ
                         </Link>
                     </div>
 
                     <div className="relative z-10 mb-8">
-                        <h2 className="text-4xl font-bold mb-4">Push Your Limits,<br />Achieve More</h2>
-                        <p className="text-gray-300">Start your journey with us today.</p>
+                        <h2 className="text-4xl font-bold mb-4">Vượt qua Giới hạn,<br />Gặt hái Thành công</h2>
+                        <p className="text-gray-300">Bắt đầu hành trình của bạn với chúng tôi ngay hôm nay.</p>
 
                         {/* Slider Dots Placeholder */}
                         <div className="flex gap-2 mt-6">
@@ -129,11 +130,11 @@ const Register = () => {
                 {/* Right Side - Form */}
                 <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col bg-[#1a1b2e] overflow-y-auto custom-scrollbar">
                     <div className="max-w-md w-full mx-auto h-full flex flex-col justify-center">
-                        <h2 className="text-3xl font-bold text-white mb-2">Create an account</h2>
+                        <h2 className="text-3xl font-bold text-white mb-2">Đăng ký tài khoản</h2>
                         <p className="text-gray-400 mb-6">
-                            Already have an account?
+                            Đã có tài khoản?
                             <Link to="/login" className="text-violet-400 hover:text-violet-300 ml-1 font-medium transition-colors">
-                                Log in
+                                Đăng nhập
                             </Link>
                         </p>
 
@@ -150,7 +151,7 @@ const Register = () => {
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Full Name</label>
+                                <label className="text-sm font-medium text-gray-400">Họ và Tên</label>
                                 <input
                                     type="text"
                                     value={fullName}
@@ -174,7 +175,7 @@ const Register = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Password</label>
+                                <label className="text-sm font-medium text-gray-400">Mật khẩu</label>
                                 <input
                                     type="password"
                                     value={password}
@@ -186,7 +187,7 @@ const Register = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Confirm Password</label>
+                                <label className="text-sm font-medium text-gray-400">Nhập lại mật khẩu</label>
                                 <input
                                     type="password"
                                     value={confirmPassword}
@@ -206,7 +207,7 @@ const Register = () => {
                                     className="w-4 h-4 rounded border-gray-600 bg-[#242641] text-violet-600 focus:ring-violet-500 focus:ring-offset-[#1a1b2e]"
                                 />
                                 <label htmlFor="agree" className="text-sm text-gray-400 select-none">
-                                    I agree to the <a href="#" className="text-violet-400 hover:text-violet-300">Terms & Conditions</a>
+                                    Tôi đồng ý với <a href="#" className="text-violet-400 hover:text-violet-300">Điều khoản & Điều kiện</a>
                                 </label>
                             </div>
 
@@ -218,7 +219,7 @@ const Register = () => {
                                 {isLoading ? (
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
                                 ) : (
-                                    'Create account'
+                                    'Đăng ký'
                                 )}
                             </button>
 
@@ -227,7 +228,7 @@ const Register = () => {
                                     <div className="w-full border-t border-gray-700/50"></div>
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-[#1a1b2e] px-2 text-gray-500">Or register with</span>
+                                    <span className="bg-[#1a1b2e] px-2 text-gray-500">Hoặc đăng ký với</span>
                                 </div>
                             </div>
 
