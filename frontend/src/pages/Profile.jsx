@@ -10,6 +10,7 @@ import {
 import api from '../api/axios';
 
 import ActivityCalendar from '../components/ActivityCalendar';
+import ActivityMap from '../components/ActivityMap';
 
 const Profile = () => {
     const { user, updateProfile } = useAuth();
@@ -1060,16 +1061,10 @@ const ConnectionsTab = () => {
                                         </div>
                                     </div>
 
-                                    {/* Map Placeholder - Integrating real maps requires Mapbox/Google API Key */}
-                                    {selectedActivity.map?.summary_polyline && (
-                                        <div className="w-full h-64 bg-slate-800 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden relative">
-                                            {/* Note: In a real app, use Leaflet/Mapbox to render selectedActivity.map.summary_polyline */}
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                                                <MapPin size={32} className="mb-2 opacity-50" />
-                                                <span className="text-xs">Bản đồ hoạt động (Polyline Data Available)</span>
-                                            </div>
-                                        </div>
-                                    )}
+                                    {/* Real Activity Map */}
+                                    <div className="mt-4">
+                                        <ActivityMap activity={selectedActivity} />
+                                    </div>
 
                                     <div className="mt-6 text-center">
                                         <a

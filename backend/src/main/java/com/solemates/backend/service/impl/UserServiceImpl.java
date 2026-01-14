@@ -7,6 +7,7 @@ import com.solemates.backend.model.User;
 import com.solemates.backend.repository.MemberProfileRepository;
 import com.solemates.backend.repository.UserRepository;
 import com.solemates.backend.service.UserService;
+import com.solemates.backend.util.RankUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,13 +108,9 @@ public class UserServiceImpl implements UserService {
     private UserDTO mapToDTO(User user, MemberProfile profile) {
         // Calculate Rank
         int points = profile != null && profile.getPoints() != null ? profile.getPoints() : 0;
-        String rank = "Thành viên";
-        if (points >= 3000)
-            rank = "Vàng";
-        else if (points >= 1500)
-            rank = "Bạc";
-        else if (points >= 300)
-            rank = "Đồng";
+        String rank = RankUtil.getRankName(points);
+        Integer nextThreshold = RankUtil.getNextRankThreshold(points);
+        Double progress = RankUtil.getRankProgress(points);
 
         return UserDTO.builder()
                 .id(user.getUserId())
@@ -134,6 +131,8 @@ public class UserServiceImpl implements UserService {
                 .showBirthday(profile != null && Boolean.TRUE.equals(profile.getShowBirthday()))
                 .points(points)
                 .rank(rank)
+                .nextRankThreshold(nextThreshold)
+                .rankProgress(progress)
                 .build();
     }
 }
