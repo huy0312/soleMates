@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle, ArrowLeft, Chrome, Apple } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle, ArrowLeft, Chrome, Apple, Eye, EyeOff } from 'lucide-react';
 import loginBg from '../assets/login-bg.jpg';
 
 const Register = () => {
@@ -15,6 +15,25 @@ const Register = () => {
     const { register } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [agreed, setAgreed] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [strength, setStrength] = useState(0);
+
+    const checkStrength = (pass) => {
+        let score = 0;
+        if (!pass) return 0;
+        if (pass.length > 7) score += 1;
+        if (/[A-Z]/.test(pass)) score += 1;
+        if (/[0-9]/.test(pass)) score += 1;
+        if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+        setStrength(score);
+    };
+
+    const handlePasswordChange = (e) => {
+        const value = e.target.value;
+        setPassword(value);
+        checkStrength(value);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -94,7 +113,7 @@ const Register = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="max-w-[1000px] w-full h-[650px] bg-[#1a1b2e] rounded-3xl shadow-2xl overflow-hidden flex relative"
+                className="max-w-[1000px] w-full h-[750px] bg-[#1a1b2e] rounded-3xl shadow-2xl overflow-hidden flex relative"
             >
                 {/* Left Side - Image */}
                 <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-8 text-white">
@@ -129,7 +148,7 @@ const Register = () => {
 
                 {/* Right Side - Form */}
                 <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col bg-[#1a1b2e] overflow-y-auto custom-scrollbar">
-                    <div className="max-w-md w-full mx-auto h-full flex flex-col justify-center">
+                    <div className="max-w-md w-full mx-auto min-h-full flex flex-col justify-center">
                         <h2 className="text-3xl font-bold text-white mb-2">Đăng ký tài khoản</h2>
                         <p className="text-gray-400 mb-6">
                             Đã có tài khoản?
@@ -157,7 +176,6 @@ const Register = () => {
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
                                     className="w-full px-4 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
-                                    placeholder="John Doe"
                                     required
                                 />
                             </div>
@@ -176,26 +194,71 @@ const Register = () => {
 
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">Mật khẩu</label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
-                                    placeholder="••••••••"
-                                    required
-                                />
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={handlePasswordChange}
+                                        className="w-full pl-10 pr-12 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+                                {/* Password Strength Meter */}
+                                {password && (
+                                    <div className="flex gap-1 mt-2 h-1">
+                                        {[...Array(4)].map((_, i) => (
+                                            <div
+                                                key={i}
+                                                className={`flex-1 rounded-full transition-all duration-300 ${i < strength
+                                                        ? strength <= 2
+                                                            ? 'bg-red-500'
+                                                            : strength === 3
+                                                                ? 'bg-yellow-500'
+                                                                : 'bg-green-500'
+                                                        : 'bg-gray-700'
+                                                    }`}
+                                            ></div>
+                                        ))}
+                                    </div>
+                                )}
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {strength === 0 && 'Quá yếu'}
+                                    {strength === 1 && 'Yếu'}
+                                    {strength === 2 && 'Trung bình'}
+                                    {strength === 3 && 'Tốt'}
+                                    {strength === 4 && 'Rất mạnh'}
+                                </p>
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400">Nhập lại mật khẩu</label>
-                                <input
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
-                                    placeholder="••••••••"
-                                    required
-                                />
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="w-full pl-10 pr-12 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-2 pt-2">
