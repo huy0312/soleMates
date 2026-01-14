@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import MemberDetail from './pages/MemberDetail';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Profile from './pages/Profile';
 import ChallengeDetail from './pages/ChallengeDetail';
 import Challenges from './pages/Challenges';
@@ -53,7 +54,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/member/:id" element={<MemberDetail />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/challenges/:id" element={<ChallengeDetail />} />
                 <Route path="/challenges" element={<Challenges />} />
