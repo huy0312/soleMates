@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle, ArrowLeft, Chrome, Apple, Eye, EyeOff } from 'lucide-react';
 import loginBg from '../assets/login-bg.jpg';
 
@@ -17,7 +17,9 @@ const Register = () => {
     const [agreed, setAgreed] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const [strength, setStrength] = useState(0);
+    const [showTerms, setShowTerms] = useState(false);
 
     const checkStrength = (pass) => {
         let score = 0;
@@ -39,26 +41,32 @@ const Register = () => {
         e.preventDefault();
         setError('');
 
-        if (password !== confirmPassword) {
-            setError('Mật khẩu nhập lại không khớp');
-            return;
+        try {
+            if (password !== confirmPassword) {
+                setError('Mật khẩu nhập lại không khớp');
+                return;
+            }
+
+            if (!agreed) {
+                setError('Bạn phải đồng ý với Điều khoản & Điều kiện');
+                return;
+            }
+
+            setIsLoading(true);
+
+            const result = await register(fullName, email, password);
+
+            if (result.success) {
+                setSuccess(true);
+            } else {
+                setError(result.message);
+            }
+        } catch (err) {
+            console.error("Register Error:", err);
+            setError("Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.");
+        } finally {
+            setIsLoading(false);
         }
-
-        if (!agreed) {
-            setError('Bạn phải đồng ý với Điều khoản & Điều kiện');
-            return;
-        }
-
-        setIsLoading(true);
-
-        const result = await register(fullName, email, password);
-
-        if (result.success) {
-            setSuccess(true);
-        } else {
-            setError(result.message);
-        }
-        setIsLoading(false);
     };
 
     if (success) {
@@ -219,12 +227,12 @@ const Register = () => {
                                             <div
                                                 key={i}
                                                 className={`flex-1 rounded-full transition-all duration-300 ${i < strength
-                                                        ? strength <= 2
-                                                            ? 'bg-red-500'
-                                                            : strength === 3
-                                                                ? 'bg-yellow-500'
-                                                                : 'bg-green-500'
-                                                        : 'bg-gray-700'
+                                                    ? strength <= 2
+                                                        ? 'bg-red-500'
+                                                        : strength === 3
+                                                            ? 'bg-yellow-500'
+                                                            : 'bg-green-500'
+                                                    : 'bg-gray-700'
                                                     }`}
                                             ></div>
                                         ))}
@@ -261,7 +269,7 @@ const Register = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 pt-2">
+                            <div className="flex items-center gap-2 pt-2 relative">
                                 <input
                                     type="checkbox"
                                     id="agree"
@@ -270,8 +278,33 @@ const Register = () => {
                                     className="w-4 h-4 rounded border-gray-600 bg-[#242641] text-violet-600 focus:ring-violet-500 focus:ring-offset-[#1a1b2e]"
                                 />
                                 <label htmlFor="agree" className="text-sm text-gray-400 select-none">
-                                    Tôi đồng ý với <a href="#" className="text-violet-400 hover:text-violet-300">Điều khoản & Điều kiện</a>
+                                    Tôi đồng ý với{' '}
+                                    <span
+                                        className="text-violet-400 hover:text-violet-300 cursor-pointer relative"
+                                        onMouseEnter={() => setShowTerms(true)}
+                                        onMouseLeave={() => setShowTerms(false)}
+                                    >
+                                        Điều khoản & Điều kiện
+                                    </span>
                                 </label>
+
+                                {/* Tooltip for Terms */}
+                                <AnimatePresence>
+                                    {showTerms && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            className="absolute bottom-full left-0 mb-2 w-64 p-4 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 text-xs text-gray-300 pointer-events-none"
+                                        >
+                                            <div className="font-bold text-white mb-2">Điều khoản sử dụng</div>
+                                            <p>
+                                                Bằng việc đăng ký tài khoản, bạn đồng ý tuân thủ các quy định của cộng đồng Solemates,
+                                                chính sách bảo mật dữ liệu và quy tắc ứng xử văn minh.
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             <button
