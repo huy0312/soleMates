@@ -29,32 +29,75 @@ const Team = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="space-y-24">
                     {members.map((member, index) => (
                         <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 30 }}
+                            key={member.id}
+                            initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.1 }}
-                            whileHover={{ y: -10 }}
-                            className="group relative"
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6 }}
+                            className={`flex flex-col lg:flex-row items-center gap-12 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
                         >
-                            <Link to={`/member/${member.id}`}>
-                                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
-                                <div className="relative glass p-6 rounded-2xl flex flex-col items-center text-center h-full border border-white/5 bg-slate-900/50 cursor-pointer">
-                                    <div className="w-32 h-32 mb-6 rounded-full overflow-hidden border-4 border-white/10 group-hover:border-cyan-400 transition-colors shadow-lg">
+                            {/* Image Section */}
+                            <div className="w-full lg:w-1/2">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition duration-500"></div>
+                                    <div className="relative aspect-[3/4] lg:aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                                        <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition duration-500"></div>
                                         <img
                                             src={member.image}
                                             alt={member.name}
-                                            className="w-full h-full object-cover transform group-hover:scale-110 transition duration-500"
+                                            className="w-full h-full object-cover transform group-hover:scale-105 transition duration-700"
                                         />
                                     </div>
-                                    <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">{member.name}</h3>
-                                    <span className="text-sm text-gray-400 uppercase tracking-wide">{member.role}</span>
-                                    <span className="mt-4 text-xs text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">Xem Chi Tiết &rarr;</span>
                                 </div>
-                            </Link>
+                            </div>
+
+                            {/* Content Section */}
+                            <div className="w-full lg:w-1/2">
+                                <div className="space-y-6">
+                                    <div>
+                                        <span className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-sm font-bold tracking-wider uppercase mb-3">
+                                            {member.role}
+                                        </span>
+                                        <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                                            {member.name}
+                                        </h3>
+                                        <div className="h-1 w-20 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-full"></div>
+                                    </div>
+
+                                    <p className="text-gray-300 text-lg leading-relaxed">
+                                        {member.bio}
+                                    </p>
+
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-3 gap-4 py-6 border-y border-white/5">
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-white mb-1">{member.stats.distance}</div>
+                                            <div className="text-xs text-gray-500 uppercase tracking-wide">Tổng Quãng Đường</div>
+                                        </div>
+                                        <div className="text-center border-l border-white/10">
+                                            <div className="text-2xl font-bold text-white mb-1">{member.stats.runs}</div>
+                                            <div className="text-xs text-gray-500 uppercase tracking-wide">Lượt Chạy</div>
+                                        </div>
+                                        <div className="text-center border-l border-white/10">
+                                            <div className="text-2xl font-bold text-white mb-1">{member.stats.pace}</div>
+                                            <div className="text-xs text-gray-500 uppercase tracking-wide">Pace TB</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2">
+                                        <Link
+                                            to={`/member/${member.id}`}
+                                            className="inline-flex items-center text-white font-medium hover:text-cyan-400 transition-colors group"
+                                        >
+                                            Tìm hiểu thêm
+                                            <span className="ml-2 transform group-hover:translate-x-1 transition-transform">&rarr;</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
                     ))}
                 </div>

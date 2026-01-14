@@ -23,7 +23,7 @@ const Footer = () => {
                             <div className="space-y-2 text-sm text-gray-400">
                                 <p className="flex items-center gap-2">
                                     <span className="w-4 h-4 rounded-full border border-gray-600 flex items-center justify-center text-[10px]">i</span>
-                                    MST: 0111017464
+                                    MST:
                                 </p>
                                 <p className="flex items-center gap-2">
                                     <Mail size={16} />
@@ -31,7 +31,7 @@ const Footer = () => {
                                 </p>
                                 <p className="flex items-center gap-2">
                                     <Phone size={16} />
-                                    02473030868
+                                    0862031203
                                 </p>
                             </div>
                         </div>

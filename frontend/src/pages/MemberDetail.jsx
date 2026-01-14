@@ -1,19 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { members } from '../data/members';
-import { ArrowLeft, Activity, MapPin, Clock, Trophy } from 'lucide-react';
+import { ArrowLeft, Activity, MapPin, Clock, Trophy, UserPlus, Check, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import friendApi from '../api/friendApi';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const MemberDetail = () => {
     const { id } = useParams();
     const member = members.find(m => m.id === id);
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [friendshipStatus, setFriendshipStatus] = useState(null);
+    const [friendReqLoading, setFriendReqLoading] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
-        // Scroll to top on load
         window.scrollTo(0, 0);
-    }, []);
+        if (user && member) {
+            checkFriendStatus();
+        }
+    }, [user, member]);
+
+    const checkFriendStatus = async () => {
+        try {
+            // Need actual user ID from backend, currently using member.id from params which matches, 
+            // BUT members data file uses string '1' etc. backend uses Long. 
+            // Assumption: member.id in URL corresponds to backend userId for this demo.
+            const response = await friendApi.getFriendshipStatus(id);
+            setFriendshipStatus(response.data);
+        } catch (error) {
+            console.error("Error checking friend status", error);
+        }
+    };
+
+    const handleAddFriend = async () => {
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để kết bạn");
+            return;
+        }
+        setFriendReqLoading(true);
+        try {
+            await friendApi.sendRequest(id);
+            setFriendshipStatus('PENDING');
+            toast.success("Đã gửi lời mời kết bạn");
+        } catch (error) {
+            toast.error("Lỗi khi gửi lời mời");
+            console.error(error);
+        } finally {
+            setFriendReqLoading(false);
+        }
+    };
 
     const handleConnect = () => {
         setIsLoading(true);
@@ -67,6 +105,26 @@ const MemberDetail = () => {
                                     <Trophy size={18} className="mr-3 text-yellow-400" />
                                     <span>Thành viên từ 2024</span>
                                 </div>
+                            </div>
+
+                            <div className="mt-6">
+                                {friendshipStatus === 'ACCEPTED' ? (
+                                    <button className="w-full py-2 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center gap-2 cursor-default">
+                                        <UserCheck size={18} /> Bạn Bè
+                                    </button>
+                                ) : friendshipStatus === 'PENDING' ? (
+                                    <button className="w-full py-2 bg-yellow-500/20 text-yellow-400 rounded-lg flex items-center justify-center gap-2 cursor-default">
+                                        <Clock size={18} /> Đã Gửi Lời Mời
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleAddFriend}
+                                        disabled={friendReqLoading}
+                                        className="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg flex items-center justify-center gap-2 hover:from-cyan-400 hover:to-blue-500 transition-all disabled:opacity-50"
+                                    >
+                                        <UserPlus size={18} /> Thêm Bạn
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     </div>

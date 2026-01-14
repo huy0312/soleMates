@@ -1,21 +1,16 @@
 package com.solemates.backend.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
+import lombok.*;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,9 +26,16 @@ public class User {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
     @Builder.Default
     private Boolean status = true;
+
+    // Strava Integration
+    private Long stravaId;
+    private String stravaAccessToken;
+    private String stravaRefreshToken;
+    private Long stravaTokenExpiresAt;
+    private String stravaProfileUrl;
+
+    @OneToOne(mappedBy = "user")
+    private MemberProfile memberProfile;
 }

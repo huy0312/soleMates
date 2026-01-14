@@ -26,12 +26,10 @@ const Hero = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 text-cyan-400 text-sm font-semibold mb-6 backdrop-blur-md">
-                        #1 Cộng Đồng Chạy Bộ
-                    </span>
                     <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
                         <span className="block text-white">Tìm Nhịp Độ Của Bạn.</span>
                         <span className="text-gradient">Tìm Đồng Đội Của Bạn.</span>
+
                     </h1>
                     <p className="mt-4 text-xl text-gray-300 max-w-2xl mx-auto mb-10">
                         Solemates không chỉ là một câu lạc bộ. Đó là một phong trào. Tham gia cùng hàng ngàn vận động viên, phá vỡ giới hạn và hỗ trợ lẫn nhau trên mỗi dặm đường.
