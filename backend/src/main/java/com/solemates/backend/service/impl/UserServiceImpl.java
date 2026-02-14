@@ -133,6 +133,7 @@ public class UserServiceImpl implements UserService {
                 .rank(rank)
                 .nextRankThreshold(nextThreshold)
                 .rankProgress(progress)
+                .stravaId(user.getStravaId())
                 .build();
     }
 }

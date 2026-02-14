@@ -109,26 +109,24 @@ const ActivityCalendar = ({ activities = [] }) => {
 
             {/* Days Grid */}
             <div className="grid grid-cols-7 gap-y-1 gap-x-1">
-                <AnimatePresence mode="wait">
-                    {calendarDays.map((dateObj, index) => (
-                        <div
-                            key={`${dateObj.type}-${dateObj.day}-${index}`}
-                            className="flex items-center justify-center aspect-square"
-                        >
-                            <div className={`
-                                w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium transition-all
-                                ${dateObj.type === 'current' ? 'text-gray-300' : 'text-gray-700'}
-                                ${dateObj.active ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-900/40' : 'bg-white/5'}
-                            `}>
-                                {dateObj.active ? (
-                                    <Rocket size={10} fill="white" />
-                                ) : (
-                                    dateObj.day
-                                )}
-                            </div>
+                {calendarDays.map((dateObj, index) => (
+                    <div
+                        key={`${dateObj.type}-${dateObj.day}-${index}`}
+                        className="flex items-center justify-center aspect-square"
+                    >
+                        <div className={`
+                            w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium transition-all
+                            ${dateObj.type === 'current' ? 'text-gray-300' : 'text-gray-700'}
+                            ${dateObj.active ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-900/40' : 'bg-white/5'}
+                        `}>
+                            {dateObj.active ? (
+                                <Rocket size={10} fill="white" />
+                            ) : (
+                                dateObj.day
+                            )}
                         </div>
-                    ))}
-                </AnimatePresence>
+                    </div>
+                ))}
             </div>
 
             <div className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-500">
