@@ -14,6 +14,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateChallenge from './pages/admin/CreateChallenge';
 import EditChallenge from './pages/admin/EditChallenge';
 import AdminChallengeList from './pages/admin/AdminChallengeList';
+import AdminUserList from './pages/admin/AdminUserList';
 import StravaCallback from './pages/StravaCallback';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
@@ -70,6 +71,7 @@ function App() {
                     <Route path="challenges" element={<AdminChallengeList />} />
                     <Route path="challenges/create" element={<CreateChallenge />} />
                     <Route path="challenges/edit/:id" element={<EditChallenge />} />
+                    <Route path="users" element={<AdminUserList />} />
                   </Route>
                 </Route>
               </Routes>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Eye, Calendar, Users } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Eye, Calendar, Users, Target } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 
@@ -8,20 +8,61 @@ const AdminChallengeList = () => {
     const [challenges, setChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
 
     useEffect(() => {
-        fetchChallenges();
-    }, []);
+        const delayDebounceFn = setTimeout(() => {
+            fetchChallenges();
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, statusFilter, page]);
 
     const fetchChallenges = async () => {
+        setLoading(true);
         try {
-            const response = await api.get('/challenges');
-            setChallenges(response.data);
+            const params = {
+                page: page,
+                size: 10,
+                search: searchTerm,
+                status: statusFilter
+            };
+            const response = await api.get('/challenges', { params });
+            if (response.data && response.data.content) {
+                setChallenges(response.data.content);
+                setTotalPages(response.data.totalPages);
+                setTotalElements(response.data.totalElements);
+            } else if (Array.isArray(response.data)) {
+                // Fallback for old API if backend hasn't reloaded
+                setChallenges(response.data);
+                setTotalPages(1);
+                setTotalElements(response.data.length);
+            } else {
+                setChallenges([]);
+                setTotalPages(0);
+                setTotalElements(0);
+            }
         } catch (error) {
             console.error("Error fetching challenges:", error);
+            setChallenges([]);
+            setTotalPages(0);
+            setTotalElements(0);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setPage(0); // Reset to first page on search
+    };
+
+    const handleStatusChange = (e) => {
+        setStatusFilter(e.target.value);
+        setPage(0); // Reset to first page on filter
     };
 
     const handleDelete = async (id) => {
@@ -36,18 +77,6 @@ const AdminChallengeList = () => {
             }
         }
     };
-
-    const filteredChallenges = challenges.filter(challenge =>
-        challenge.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-6">
@@ -65,17 +94,27 @@ const AdminChallengeList = () => {
             </div>
 
             {/* Filters */}
-            <div className="glass p-4 rounded-xl flex gap-4">
+            <div className="glass p-4 rounded-xl flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                     <input
                         type="text"
                         placeholder="Tìm kiếm thử thách..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleSearchChange}
                         className="w-full bg-slate-800/50 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-cyan-500 transition-colors"
                     />
                 </div>
+                <select
+                    value={statusFilter}
+                    onChange={handleStatusChange}
+                    className="bg-slate-800/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-500"
+                >
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="UPCOMING">Sắp diễn ra</option>
+                    <option value="ACTIVE">Đang diễn ra</option>
+                    <option value="ENDED">Đã kết thúc</option>
+                </select>
             </div>
 
             {/* Table */}
@@ -92,8 +131,16 @@ const AdminChallengeList = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {filteredChallenges.length > 0 ? (
-                                filteredChallenges.map((challenge) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-12 text-center">
+                                        <div className="flex justify-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : challenges.length > 0 ? (
+                                challenges.map((challenge) => (
                                     <tr key={challenge.id} className="hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
@@ -166,6 +213,32 @@ const AdminChallengeList = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between">
+                    <div className="text-sm text-gray-400">
+                        Hiển thị {challenges.length} / {totalElements} kết quả
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                            disabled={page === 0}
+                            className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm text-white"
+                        >
+                            Trước
+                        </button>
+                        <span className="px-3 py-1 text-sm text-white">
+                            Trang {page + 1} / {totalPages || 1}
+                        </span>
+                        <button
+                            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                            disabled={page >= totalPages - 1}
+                            className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm text-white"
+                        >
+                            Sau
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

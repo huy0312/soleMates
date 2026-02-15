@@ -19,10 +19,13 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        if (token) {
-            fetchProfile();
-        }
-        setLoading(false);
+        const initializeAuth = async () => {
+            if (token) {
+                await fetchProfile();
+            }
+            setLoading(false);
+        };
+        initializeAuth();
     }, [token]);
 
     const login = async (email, password) => {
@@ -31,8 +34,12 @@ export const AuthProvider = ({ children }) => {
             const { token } = response.data;
             setToken(token);
             localStorage.setItem('token', token);
-            // Effect will trigger fetchProfile
-            return { success: true };
+
+            // Fetch profile immediately to get role for redirect
+            const userResponse = await api.get('/users/me');
+            setUser(userResponse.data);
+
+            return { success: true, user: userResponse.data };
         } catch (error) {
             console.error("Login failed", error);
             return { success: false, message: error.response?.data?.message || 'Login failed' };

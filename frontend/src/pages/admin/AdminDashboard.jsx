@@ -34,8 +34,8 @@ const AdminDashboard = () => {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive(item.path) && (item.path !== '/admin' || isRoot)
-                                    ? 'bg-slate-700 text-white shadow-lg'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                ? 'bg-slate-700 text-white shadow-lg'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             <item.icon size={20} />
@@ -50,16 +50,16 @@ const AdminDashboard = () => {
                 {isRoot ? (
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="glass rounded-2xl p-6">
+                            <Link to="/admin/users" className="glass rounded-2xl p-6 transition-transform hover:scale-105 block">
                                 <h3 className="text-gray-400 text-sm font-medium mb-2">Tổng Người Dùng</h3>
                                 <div className="text-3xl font-bold text-white">1,234</div>
                                 <div className="text-green-400 text-xs mt-1">+12% so với tháng trước</div>
-                            </div>
-                            <div className="glass rounded-2xl p-6">
+                            </Link>
+                            <Link to="/admin/challenges" className="glass rounded-2xl p-6 transition-transform hover:scale-105 block">
                                 <h3 className="text-gray-400 text-sm font-medium mb-2">Thử Thách Đang Chạy</h3>
                                 <div className="text-3xl font-bold text-white">8</div>
                                 <div className="text-cyan-400 text-xs mt-1">3 sắp kết thúc</div>
-                            </div>
+                            </Link>
                             <div className="glass rounded-2xl p-6">
                                 <h3 className="text-gray-400 text-sm font-medium mb-2">Lượt Hoàn Thành</h3>
                                 <div className="text-3xl font-bold text-white">856</div>
