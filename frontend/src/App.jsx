@@ -19,7 +19,6 @@ import StravaCallback from './pages/StravaCallback';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import Forum from './pages/Forum';
-import PublicProfile from './pages/PublicProfile';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
@@ -57,7 +56,8 @@ function App() {
                 <Route path="/forum" element={<Forum />} />
                 <Route path="/community" element={<Navigate to="/forum" replace />} />
                 <Route path="/strava/callback" element={<StravaCallback />} />
-                <Route path="/u/:username" element={<PublicProfile />} />
+                <Route path="/strava/callback" element={<StravaCallback />} />
+                <Route path="/p/:token" element={<Profile />} />
 
                 {/* Admin Routes */}
                 <Route element={<AdminRoute />}>

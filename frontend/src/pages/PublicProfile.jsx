@@ -6,7 +6,7 @@ import api from '../api/axios';
 import ActivityCalendar from '../components/ActivityCalendar';
 
 const PublicProfile = () => {
-    const { username } = useParams();
+    const { token } = useParams();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ const PublicProfile = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await api.get(`/users/${username}`);
+                const res = await api.get(`/users/profile/${token}`);
                 setProfile(res.data);
 
                 // Fetch activities if available (optional, might need backend support or use same endpoint if public)
@@ -30,10 +30,10 @@ const PublicProfile = () => {
             }
         };
 
-        if (username) {
+        if (token) {
             fetchProfile();
         }
-    }, [username]);
+    }, [token]);
 
     if (loading) return (
         <div className="min-h-screen pt-24 flex items-center justify-center">

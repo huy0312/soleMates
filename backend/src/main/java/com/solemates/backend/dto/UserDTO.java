@@ -13,6 +13,7 @@ public class UserDTO {
     private String email;
     private String username;
     private String referralCode;
+    private String shareToken;
     private UserRole role;
     private String fullName;
     private Gender gender;

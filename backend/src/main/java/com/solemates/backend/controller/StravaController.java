@@ -1,5 +1,6 @@
 package com.solemates.backend.controller;
 
+import com.solemates.backend.service.GeminiService;
 import com.solemates.backend.service.StravaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.Map;
 public class StravaController {
 
     private final StravaService stravaService;
+    private final GeminiService geminiService;
 
     @PostMapping("/connect")
     public ResponseEntity<?> connectStrava(@RequestBody Map<String, String> payload) {
@@ -56,4 +58,22 @@ public class StravaController {
     public ResponseEntity<?> getActivity(@PathVariable Long id) {
         return ResponseEntity.ok(stravaService.getActivity(id));
     }
+
+    @PostMapping("/activities/{id}/analyze")
+    public ResponseEntity<?> analyzeActivity(@PathVariable Long id) {
+        try {
+            Map<String, Object> activityData = stravaService.getActivity(id);
+            String analysis = geminiService.analyzeActivity(activityData);
+            return ResponseEntity.ok(Map.of("analysis", analysis));
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "Unknown error";
+            if (msg.contains("429") || msg.toLowerCase().contains("too many") || msg.toLowerCase().contains("rate")) {
+                return ResponseEntity.status(429)
+                        .body(Map.of("error", "API đang bị giới hạn tần suất. Vui lòng thử lại sau vài giây."));
+            }
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Không thể phân tích: " + msg));
+        }
+    }
+
 }

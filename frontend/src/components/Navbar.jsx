@@ -189,7 +189,7 @@ const Navbar = () => {
                                                 {/* Menu Items */}
                                                 <div className="py-2">
                                                     <Link
-                                                        to="/profile"
+                                                        to={user.shareToken ? `/p/${user.shareToken}` : "/profile"}
                                                         className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors"
                                                         onClick={() => setIsDropdownOpen(false)}
                                                     >
@@ -283,7 +283,7 @@ const Navbar = () => {
                                     </span>
                                 </div>
 
-                                <Link to="/profile" onClick={() => setIsOpen(false)} className="text-slate-600 hover:text-orange-500 transition-colors">Hồ Sơ Cá Nhân</Link>
+                                <Link to={user.shareToken ? `/p/${user.shareToken}` : "/profile"} onClick={() => setIsOpen(false)} className="text-slate-600 hover:text-orange-500 transition-colors">Hồ Sơ Cá Nhân</Link>
                                 <button
                                     onClick={() => { handleLogoutClick(); setIsOpen(false); }}
                                     className="w-full bg-red-50 text-red-500 px-6 py-3 rounded-full font-medium hover:bg-red-100 transition-colors"

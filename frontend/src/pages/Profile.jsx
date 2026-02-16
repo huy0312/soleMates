@@ -1,19 +1,30 @@
-// I have added the logic to list the recent activities.
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     User, Save, Edit2, Calendar, Mail, FileText, ImageIcon,
     MapPin, Users, Award, ShoppingBag, Settings, Camera, ChevronLeft, ChevronRight,
-    X, Upload, Lock, Check, Circle, Link as LinkIcon
+    X, Upload, Lock, Check, Circle, Link as LinkIcon, Activity
 } from 'lucide-react';
 import api from '../api/axios';
 
 import ActivityCalendar from '../components/ActivityCalendar';
 import ActivityMap from '../components/ActivityMap';
+import RunDetailModal from '../components/RunDetailModal';
+
 
 const Profile = () => {
-    const { user, updateProfile } = useAuth();
+    const { user: currentUser, updateProfile } = useAuth();
+    const { token } = useParams();
+    const navigate = useNavigate();
+
+    const [viewedUser, setViewedUser] = useState(null);
+    const [isOwner, setIsOwner] = useState(false);
+    const [isLoadingUser, setIsLoadingUser] = useState(true);
+    const [selectedActivityId, setSelectedActivityId] = useState(null);
+
     const [activeTab, setActiveTab] = useState('achievements');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [isLoading, setIsLoading] = useState(false);
@@ -41,25 +52,98 @@ const Profile = () => {
         showBirthday: false
     });
 
-    useEffect(() => {
-        if (user) {
-            setFormData({
-                fullName: user.fullName || '',
-                email: user.email || '',
-                gender: user.gender || 'OTHER',
-                birthDate: user.birthDate || '',
-                bio: user.bio || '',
-                avatarUrl: user.avatarUrl || '',
-                coverPhotoUrl: user.coverPhotoUrl || '',
-                address: user.address || '',
-                telephone: user.telephone || '',
-                showEmail: user.showEmail || false,
-                showPhone: user.showPhone || false,
-                showAddress: user.showAddress || false,
-                showBirthday: user.showBirthday || false
-            });
-            setPreviewImage(user.avatarUrl || '');
+    // Custom Link State
+    const [isEditingLink, setIsEditingLink] = useState(false);
+    const [customLink, setCustomLink] = useState('');
+    const [isLoadingLink, setIsLoadingLink] = useState(false);
 
+    // Fetch User Logic
+    useEffect(() => {
+        const fetchUser = async () => {
+            setIsLoadingUser(true);
+            try {
+                if (token) {
+                    // Scenario 1: Accessing via /p/:token
+                    const res = await api.get(`/users/profile/${token}`);
+                    const fetchedUser = res.data;
+                    setViewedUser(fetchedUser);
+
+                    if (currentUser && currentUser.id === fetchedUser.id) {
+                        setIsOwner(true);
+                    } else {
+                        setIsOwner(false);
+                    }
+                } else {
+                    // Scenario 2: Accessing via /profile
+                    if (currentUser) {
+                        if (currentUser.shareToken) {
+                            // Redirect to /p/:token
+                            navigate(`/p/${currentUser.shareToken}`, { replace: true });
+                            return;
+                        } else {
+                            // No share token yet, just show current user as owner
+                            setViewedUser(currentUser);
+                            setIsOwner(true);
+                        }
+                    } else {
+                        // Not logged in and accessing /profile -> Redirect to login
+                        navigate('/login');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching user:", err);
+                setMessage({ type: 'error', text: 'Không tìm thấy người dùng.' });
+            } finally {
+                setIsLoadingUser(false);
+            }
+        };
+
+        fetchUser();
+    }, [token, currentUser, navigate]);
+
+
+    // Handlers needed
+    const handleSaveCustomLink = async () => {
+        if (!customLink) return;
+        setIsLoadingLink(true);
+        try {
+            const res = await api.put('/users/share-token', { token: customLink });
+            setMessage({ type: 'success', text: 'Cập nhật link thành công!' });
+            setIsEditingLink(false);
+
+            // Redirect to new link
+            navigate(`/p/${customLink}`, { replace: true });
+
+        } catch (error) {
+            console.error(error);
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Link không hợp lệ hoặc đã tồn tại' });
+        } finally {
+            setIsLoadingLink(false);
+        }
+    };
+
+    useEffect(() => {
+        if (viewedUser && isOwner) {
+            setFormData({
+                fullName: viewedUser.fullName || '',
+                email: viewedUser.email || '',
+                gender: viewedUser.gender || 'OTHER',
+                birthDate: viewedUser.birthDate || '',
+                bio: viewedUser.bio || '',
+                avatarUrl: viewedUser.avatarUrl || '',
+                coverPhotoUrl: viewedUser.coverPhotoUrl || '',
+                address: viewedUser.address || '',
+                telephone: viewedUser.telephone || '',
+                showEmail: viewedUser.showEmail || false,
+                showPhone: viewedUser.showPhone || false,
+                showAddress: viewedUser.showAddress || false,
+                showBirthday: viewedUser.showBirthday || false
+            });
+            setPreviewImage(viewedUser.avatarUrl || '');
+        }
+
+        if (viewedUser) {
             // Fetch Activities
             const fetchAllActivities = async () => {
                 try {
@@ -72,12 +156,16 @@ const Profile = () => {
                         setActivities(res.data);
                     }
                 } catch (error) {
-                    console.error("Failed to fetch activities for calendar", error);
+                    // console.error("Failed to fetch activities for calendar", error);
+                    // Silently fail if public user has no activities or endpoint protected
                 }
             };
-            fetchAllActivities();
+            if (isOwner) {
+                fetchAllActivities();
+            }
         }
-    }, [user]);
+
+    }, [viewedUser, isOwner]);
 
     // Auto-dismiss toast
     useEffect(() => {
@@ -106,6 +194,8 @@ const Profile = () => {
 
         if (result.success) {
             setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
+            // Update viewedUser to reflect changes immediately
+            setViewedUser(prev => ({ ...prev, ...formData }));
         } else {
             setMessage({ type: 'error', text: result.message || 'Có lỗi xảy ra.' });
         }
@@ -129,6 +219,7 @@ const Profile = () => {
 
         if (result.success) {
             setFormData(prev => ({ ...prev, avatarUrl: previewImage }));
+            setViewedUser(prev => ({ ...prev, avatarUrl: previewImage }));
             setIsModalOpen(false);
             setMessage({ type: 'success', text: 'Cập nhật ảnh đại diện thành công!' });
         } else {
@@ -151,6 +242,7 @@ const Profile = () => {
 
             if (result.success) {
                 setMessage({ type: 'success', text: 'Cập nhật ảnh bìa thành công!' });
+                setViewedUser(prev => ({ ...prev, coverPhotoUrl: base64 }));
             } else {
                 setMessage({ type: 'error', text: 'Không thể cập nhật ảnh bìa.' });
             }
@@ -159,7 +251,8 @@ const Profile = () => {
         reader.readAsDataURL(file);
     };
 
-    if (!user) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
+    if (isLoadingUser) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
+    if (!viewedUser) return <div className="min-h-screen flex items-center justify-center text-white">Không tìm thấy người dùng.</div>;
 
     const frames = [
         { id: 'none', label: 'Không sử dụng khung', locked: false },
@@ -167,31 +260,42 @@ const Profile = () => {
             id: 'bronze',
             label: 'Khung Đồng',
             sub: 'Cấp độ đạt Đồng',
-            locked: (user.points || 0) < 300,
+            locked: (viewedUser.points || 0) < 300,
             styleClass: 'bg-gradient-to-tr from-[#8B4513] via-[#CD7F32] to-[#8B4513] shadow-lg shadow-orange-900/40'
         },
         {
             id: 'silver',
             label: 'Khung Bạc',
             sub: 'Cấp độ đạt Bạc',
-            locked: (user.points || 0) < 1500,
+            locked: (viewedUser.points || 0) < 1500,
             styleClass: 'bg-gradient-to-tr from-[#708090] via-[#E2E8F0] to-[#708090] shadow-lg shadow-slate-400/40'
         },
         {
             id: 'gold',
             label: 'Khung Vàng',
             sub: 'Cấp độ đạt Vàng',
-            locked: (user.points || 0) < 3000,
+            locked: (viewedUser.points || 0) < 3000,
             styleClass: 'bg-gradient-to-tr from-[#B8860B] via-[#FFD700] to-[#B8860B] shadow-[0_0_15px_rgba(255,215,0,0.6)]'
         },
         {
             id: 'diamond',
             label: 'Khung Kim Cương',
             sub: 'Cấp độ đạt Kim Cương',
-            locked: (user.points || 0) < 5000,
+            locked: (viewedUser.points || 0) < 5000,
             styleClass: 'bg-gradient-to-tr from-[#008B8B] via-[#00FFFF] to-[#008B8B] shadow-[0_0_20px_rgba(0,255,255,0.6)]'
         },
     ];
+
+    const tabs = [
+        { id: 'activities', label: 'Hoạt động', icon: Activity },
+        { id: 'achievements', label: 'Thành tích', icon: Award },
+        { id: 'friends', label: 'Bạn bè', icon: Users },
+    ];
+
+    if (isOwner) {
+        tabs.push({ id: 'edit', label: 'Thông tin cá nhân', icon: Settings });
+        tabs.push({ id: 'orders', label: 'Đơn hàng', icon: ShoppingBag });
+    }
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -213,73 +317,84 @@ const Profile = () => {
                         animate={{ opacity: 1, x: 0 }}
                         className="glass rounded-2xl p-6 flex flex-col items-center text-center"
                     >
-                        <div className="relative mb-4 group cursor-pointer" onClick={() => setIsModalOpen(true)}>
+                        <div className={`relative mb-4 ${isOwner ? 'group cursor-pointer' : ''}`} onClick={() => isOwner && setIsModalOpen(true)}>
                             <div className="w-32 h-32 rounded-full border-4 border-slate-700 p-1 bg-slate-800 overflow-hidden relative">
-                                {user.avatarUrl ? (
-                                    <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+                                {viewedUser.avatarUrl ? (
+                                    <img src={viewedUser.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
                                 ) : (
                                     <div className="w-full h-full rounded-full bg-slate-700 flex items-center justify-center">
                                         <User size={48} className="text-gray-400" />
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                                    <Edit2 className="text-white" size={24} />
-                                </div>
+                                {isOwner && (
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                                        <Edit2 className="text-white" size={24} />
+                                    </div>
+                                )}
                             </div>
-                            <button className="absolute bottom-0 right-0 bg-slate-700 p-2 rounded-full hover:bg-slate-600 transition-colors border border-slate-600 z-10">
-                                <Edit2 size={14} className="text-white" />
-                            </button>
+                            {isOwner && (
+                                <button className="absolute bottom-0 right-0 bg-slate-700 p-2 rounded-full hover:bg-slate-600 transition-colors border border-slate-600 z-10">
+                                    <Edit2 size={14} className="text-white" />
+                                </button>
+                            )}
                         </div>
 
-                        <h2 className="text-xl font-bold text-white mb-2">{user.fullName || "Runner Mới"}</h2>
+                        <h2 className="text-xl font-bold text-white mb-2">{viewedUser.fullName || "Runner Mới"}</h2>
 
                         <div className="px-4 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-6 flex items-center gap-2">
                             <Award size={14} className="text-amber-400" />
-                            <span className="text-amber-400 font-medium text-sm">{user.rank || 'Thành viên'} ({user.points || 0} điểm)</span>
+                            <span className="text-amber-400 font-medium text-sm">{viewedUser.rank || 'Thành viên'} ({viewedUser.points || 0} điểm)</span>
                         </div>
 
-                        <div className="w-full border-t border-white/10 pt-4 flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
-                            {/* Friends Count Placeholder - Hidden until implemented */}
-                            <div className="flex flex-col gap-2 w-full px-4">
-                                <div className="flex items-center justify-between text-sm glass p-3 rounded-xl border-white/5 bg-slate-800/50">
-                                    <span className="text-gray-400">Mã giới thiệu:</span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-white font-mono font-bold tracking-wider">{user.referralCode || '---'}</span>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(user.referralCode);
-                                                // Assuming we have access to setMessage or a toast function
-                                            }}
-                                            className="p-1 hover:bg-white/10 rounded-full transition-colors"
-                                            title="Sao chép mã"
-                                        >
-                                            <FileText size={14} className="text-cyan-400" />
-                                        </button>
-                                    </div>
+                        <div className="w-full border-t border-white/10 pt-4 text-left space-y-3">
+                            {/* Only show these if show... is true Or if isOwner */}
+                            {(isOwner || viewedUser.showAddress) && viewedUser.address && (
+                                <div className="flex items-center gap-3 text-gray-300 text-sm">
+                                    <MapPin size={16} className="text-gray-500" />
+                                    <span>{viewedUser.address}</span>
                                 </div>
-                                <div className="flex items-center justify-between text-sm glass p-3 rounded-xl border-white/5 bg-slate-800/50">
-                                    <span className="text-gray-400">Link hồ sơ:</span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-white font-mono text-xs max-w-[100px] truncate">{window.location.host}/u/{user.username || '...'}</span>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/u/${user.username}`);
-                                            }}
-                                            className="p-1 hover:bg-white/10 rounded-full transition-colors"
-                                            title="Sao chép liên kết"
-                                        >
-                                            <LinkIcon size={14} className="text-cyan-400" />
-                                        </button>
-                                    </div>
+                            )}
+                            {(isOwner || viewedUser.showBirthday) && viewedUser.birthDate && (
+                                <div className="flex items-center gap-3 text-gray-300 text-sm">
+                                    <Calendar size={16} className="text-gray-500" />
+                                    <span>{new Date(viewedUser.birthDate).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-3 text-gray-300 text-sm">
+                                <Calendar size={16} className="text-gray-500" />
+                                <span>Tham gia: {viewedUser.joinDate ? new Date(viewedUser.joinDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</span>
+                            </div>
+                        </div>
+
+                        {isOwner && (
+                            <div className="w-full border-t border-white/10 pt-4 flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
+                                <div className="flex flex-col gap-2 w-full px-4">
                                 </div>
                             </div>
-                            {/* <Users size={16} />
-                            <span>0 bạn bè</span> */}
-                        </div>
+                        )}
 
                         <div className="text-xs text-gray-500 mb-6">
-                            Thành viên từ: {user.joinDate ? new Date(user.joinDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
+
                         </div>
+
+                        {/* Strava Connect Button */}
+                        {isOwner && (
+                            <div className="w-full px-4 mb-6">
+                                {!viewedUser.stravaId ? (
+                                    <button
+                                        onClick={() => window.location.href = `https://www.strava.com/oauth/authorize?client_id=141846&response_type=code&redirect_uri=${window.location.origin}/strava/callback&approval_prompt=force&scope=read,activity:read_all`}
+                                        className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-orange-900/20"
+                                    >
+                                        Kết nối Strava
+                                    </button>
+                                ) : (
+                                    <div className="w-full bg-slate-700/50 border border-slate-600/50 text-gray-300 py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm">
+                                        <Check size={16} className="text-green-500" />
+                                        Đã kết nối Strava
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Activity Calendar Widget - Compact Mode */}
                         <div className="w-full border-t border-white/10 pt-6">
@@ -296,37 +411,36 @@ const Profile = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="glass rounded-2xl overflow-hidden relative h-48 sm:h-64"
                     >
-                        {user.coverPhotoUrl ? (
-                            <img src={user.coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
+                        {viewedUser.coverPhotoUrl ? (
+                            <img src={viewedUser.coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
                         ) : (
                             <div className="absolute inset-0 bg-gradient-to-r from-violet-900 to-slate-900"></div>
                         )}
 
-                        <input
-                            type="file"
-                            ref={coverInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleCoverPhotoUpload}
-                        />
+                        {isOwner && (
+                            <>
+                                <input
+                                    type="file"
+                                    ref={coverInputRef}
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleCoverPhotoUpload}
+                                />
 
-                        <button
-                            onClick={() => coverInputRef.current.click()}
-                            disabled={isLoading}
-                            className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full text-sm flex items-center gap-2 backdrop-blur-sm transition-colors border border-white/10 disabled:opacity-50"
-                        >
-                            <Camera size={16} /> {isLoading ? 'Đang tải...' : 'Chỉnh sửa ảnh bìa'}
-                        </button>
+                                <button
+                                    onClick={() => coverInputRef.current.click()}
+                                    disabled={isLoading}
+                                    className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-full text-sm flex items-center gap-2 backdrop-blur-sm transition-colors border border-white/10 disabled:opacity-50"
+                                >
+                                    <Camera size={16} /> {isLoading ? 'Đang tải...' : 'Chỉnh sửa ảnh bìa'}
+                                </button>
+                            </>
+                        )}
                     </motion.div>
 
                     {/* Navigation Tabs */}
                     <div className="glass rounded-2xl p-2 flex flex-wrap gap-2">
-                        {[
-                            { id: 'achievements', label: 'Thành tích', icon: Award },
-                            { id: 'friends', label: 'Bạn bè', icon: Users },
-                            { id: 'edit', label: 'Thông tin cá nhân', icon: Settings },
-                            { id: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
-                        ].map((tab) => (
+                        {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
@@ -348,6 +462,91 @@ const Profile = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2 }}
                     >
+                        {activeTab === 'activities' && (
+                            <div className="space-y-6">
+                                {/* Stats Summary */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="glass p-4 rounded-xl text-center">
+                                        <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Tổng quãng đường</div>
+                                        <div className="text-xl font-bold text-white">
+                                            {viewedUser.totalDistance ? (viewedUser.totalDistance / 1000).toFixed(1) : 0} km
+                                        </div>
+                                    </div>
+                                    <div className="glass p-4 rounded-xl text-center">
+                                        <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Hoạt động</div>
+                                        <div className="text-xl font-bold text-white">{activities.length}</div>
+                                    </div>
+                                    <div className="glass p-4 rounded-xl text-center">
+                                        <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Thời gian</div>
+                                        <div className="text-xl font-bold text-white">
+                                            {viewedUser.totalMovingTime ? Math.floor(viewedUser.totalMovingTime / 3600) : 0}h
+                                        </div>
+                                    </div>
+                                    <div className="glass p-4 rounded-xl text-center">
+                                        <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Độ cao</div>
+                                        <div className="text-xl font-bold text-white">
+                                            {viewedUser.totalElevationGain ? viewedUser.totalElevationGain.toFixed(0) : 0}m
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Activity List */}
+                                <div className="glass rounded-2xl p-6">
+                                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                        <Activity size={20} className="text-orange-500" />
+                                        Hoạt động gần đây
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        {activities.length > 0 ? (
+                                            activities.map((activity, index) => (
+                                                <div
+                                                    key={activity.id || index}
+                                                    onClick={() => setSelectedActivityId(activity.id)}
+                                                    className="bg-slate-800/50 rounded-xl p-4 flex items-center justify-between hover:bg-slate-800 transition-colors border border-white/5 cursor-pointer"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                                            {activity.type === 'Ride' ? <Activity size={20} /> : <Activity size={20} />}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-white group-hover:text-orange-500 transition-colors">{activity.name}</h4>
+                                                            <div className="flex items-center gap-3 text-sm text-gray-400">
+                                                                <span className="flex items-center gap-1">
+                                                                    <Calendar size={12} />
+                                                                    {new Date(activity.start_date_local).toLocaleDateString('vi-VN')}
+                                                                </span>
+                                                                <span className="flex items-center gap-1">
+                                                                    {(activity.distance / 1000).toFixed(2)} km
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-bold text-orange-500 text-lg">
+                                                            {Math.floor(activity.moving_time / 60)}p
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {activity.average_speed ? `Pace: ${(16.666 / activity.average_speed).toFixed(2)}` : ''}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-12 text-gray-500">
+                                                <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <Activity size={32} className="text-slate-600" />
+                                                </div>
+                                                <p>Chưa có hoạt động nào được ghi nhận.</p>
+                                                {isOwner && !currentUser.stravaId && (
+                                                    <p className="text-sm mt-2 text-orange-500">Kết nối Strava để đồng bộ hoạt động!</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         {activeTab === 'achievements' && (
                             <div className="glass rounded-2xl p-12 text-center text-gray-400">
                                 <Award size={48} className="mx-auto mb-4 opacity-50" />
@@ -356,7 +555,7 @@ const Profile = () => {
                             </div>
                         )}
 
-                        {activeTab === 'edit' && (
+                        {activeTab === 'edit' && isOwner && (
                             <div className="space-y-6">
                                 <div className="glass rounded-2xl p-8">
                                     <h3 className="text-2xl font-bold text-white mb-6">Thông tin cá nhân</h3>
@@ -507,19 +706,19 @@ const Profile = () => {
                                                 type="button"
                                                 onClick={() => {
                                                     setFormData({
-                                                        fullName: user.fullName || '',
-                                                        email: user.email || '',
-                                                        gender: user.gender || 'OTHER',
-                                                        birthDate: user.birthDate || '',
-                                                        bio: user.bio || '',
-                                                        avatarUrl: user.avatarUrl || '',
-                                                        coverPhotoUrl: user.coverPhotoUrl || '',
-                                                        address: user.address || '',
-                                                        telephone: user.telephone || '',
-                                                        showEmail: user.showEmail || false,
-                                                        showPhone: user.showPhone || false,
-                                                        showAddress: user.showAddress || false,
-                                                        showBirthday: user.showBirthday || false
+                                                        fullName: viewedUser.fullName || '',
+                                                        email: viewedUser.email || '',
+                                                        gender: viewedUser.gender || 'OTHER',
+                                                        birthDate: viewedUser.birthDate || '',
+                                                        bio: viewedUser.bio || '',
+                                                        avatarUrl: viewedUser.avatarUrl || '',
+                                                        coverPhotoUrl: viewedUser.coverPhotoUrl || '',
+                                                        address: viewedUser.address || '',
+                                                        telephone: viewedUser.telephone || '',
+                                                        showEmail: viewedUser.showEmail || false,
+                                                        showPhone: viewedUser.showPhone || false,
+                                                        showAddress: viewedUser.showAddress || false,
+                                                        showBirthday: viewedUser.showBirthday || false
                                                     });
                                                 }}
                                                 className="px-6 py-2 rounded-full text-slate-400 font-medium hover:bg-white/5 transition-colors"
@@ -543,7 +742,7 @@ const Profile = () => {
                                         </button>
                                     </div>
                                 </div>
-                                <ConnectionsTab />
+                                {/* Connections Tab would go here */}
                             </div>
                         )}
 
@@ -563,8 +762,6 @@ const Profile = () => {
                                                     if (!val) return;
                                                     try {
                                                         const res = await api.get(`/users/search?q=${val}`);
-                                                        // For now, just logging or setting state (need to add state for search results)
-                                                        // Let's add a local state for this in the component
                                                         const event = new CustomEvent('search-friends', { detail: res.data });
                                                         window.dispatchEvent(event);
                                                     } catch (err) {
@@ -595,8 +792,8 @@ const Profile = () => {
                                         </button>
                                     </div>
 
-                                    {/* Search Results Area - handled by FriendsTab component (which we will create or inline) */}
-                                    <AuthorSearchResult />
+                                    {/* Search Results Area */}
+                                    {/* <AuthorSearchResult /> */}
                                 </div>
 
                                 <div className="glass rounded-2xl p-12 text-center text-gray-400">
@@ -607,7 +804,7 @@ const Profile = () => {
                             </div>
                         )}
 
-                        {activeTab === 'orders' && (
+                        {activeTab === 'orders' && isOwner && (
                             <div className="glass rounded-2xl p-12 text-center text-gray-400">
                                 <ShoppingBag size={48} className="mx-auto mb-4 opacity-50" />
                                 <h3 className="text-xl font-medium text-white mb-2">Chưa có đơn hàng</h3>
@@ -621,7 +818,7 @@ const Profile = () => {
 
             {/* AVATAR EDIT MODAL */}
             <AnimatePresence>
-                {isModalOpen && (
+                {isModalOpen && isOwner && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -710,501 +907,35 @@ const Profile = () => {
                                     />
                                     <button
                                         onClick={() => fileInputRef.current.click()}
-                                        className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-8 py-3 rounded-full font-medium flex items-center gap-2 transition-colors w-full max-w-xs justify-center"
+                                        className="mb-4 bg-white border border-gray-200 hover:bg-gray-50 text-slate-700 px-6 py-2.5 rounded-full font-medium transition-colors shadow-sm flex items-center gap-2"
                                     >
                                         <Upload size={18} /> Tải ảnh lên
                                     </button>
-                                </div>
-                            </div>
 
-                            {/* Modal Footer */}
-                            <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-white">
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-6 py-2 rounded-full text-slate-500 font-medium hover:bg-gray-100 transition-colors"
-                                >
-                                    Huỷ
-                                </button>
-                                <button
-                                    onClick={handleSaveAvatar}
-                                    disabled={isLoading}
-                                    className="px-8 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium transition-colors shadow-lg shadow-red-500/20 disabled:opacity-70"
-                                >
-                                    {isLoading ? 'Đang lưu...' : 'Lưu lại'}
-                                </button>
+                                    <button
+                                        onClick={handleSaveAvatar}
+                                        disabled={isLoading}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-8 py-2.5 rounded-full font-bold shadow-lg shadow-red-500/20 transition-all transform hover:scale-105"
+                                    >
+                                        {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
+            {/* Avatar Edit Modal */}
+            {/* ... (existing modal logic) ... */}
+
+            {/* Run Detail Modal */}
+            {selectedActivityId && (
+                <RunDetailModal
+                    activityId={selectedActivityId}
+                    onClose={() => setSelectedActivityId(null)}
+                />
+            )}
         </div>
-    );
-};
-
-const AuthorSearchResult = () => {
-    const [results, setResults] = useState([]);
-    const [searched, setSearched] = useState(false);
-
-    useEffect(() => {
-        const handleSearch = (e) => {
-            setResults(e.detail);
-            setSearched(true);
-        };
-        window.addEventListener('search-friends', handleSearch);
-        return () => window.removeEventListener('search-friends', handleSearch);
-    }, []);
-
-    if (!searched) return null;
-
-    if (results.length === 0) {
-        return <div className="text-center text-gray-400 py-4">Không tìm thấy người dùng nào.</div>;
-    }
-
-    return (
-        <div className="mt-4 space-y-3">
-            {results.map(u => (
-                <div key={u.id} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl hover:bg-slate-700/50 transition-colors border border-white/5">
-                    <img src={u.avatarUrl || 'https://via.placeholder.com/40'} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
-                    <div className="flex-1">
-                        <div className="font-medium text-white">{u.fullName}</div>
-                        <div className="text-xs text-gray-400">@{u.username}</div>
-                    </div>
-                    <a href={`/u/${u.username}`} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm font-medium px-3 py-1 rounded-full border border-cyan-400/20 hover:bg-cyan-400/10 transition-all">
-                        Xem
-                    </a>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-const ConnectionsTab = () => {
-    const [status, setStatus] = useState({ connected: false, loading: true, profileUrl: null, stravaId: null });
-    const [clientId, setClientId] = useState(null);
-    const [stats, setStats] = useState(null);
-    const [activities, setActivities] = useState([]);
-    const [syncing, setSyncing] = useState(false);
-    const [selectedActivity, setSelectedActivity] = useState(null);
-
-    // Pagination & Filter State
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-
-    const handleActivityClick = async (activity) => {
-        setSelectedActivity(activity);
-        try {
-            const res = await api.get(`/strava/activities/${activity.id}`);
-            if (res.data && res.data.id) {
-                setSelectedActivity(res.data);
-            }
-        } catch (error) {
-            console.error("Failed to fetch activity details", error);
-        }
-    };
-
-    const fetchActivities = async (year, pageNum) => {
-        try {
-            const res = await api.get(`/strava/activities?year=${year}&page=${pageNum}`);
-            if (pageNum === 1) {
-                setActivities(res.data);
-            } else {
-                setActivities(prev => [...prev, ...res.data]);
-            }
-            if (res.data.length < 10) {
-                setHasMore(false);
-            } else {
-                setHasMore(true);
-            }
-        } catch (error) {
-            console.error("Failed to fetch activities", error);
-        }
-    };
-
-    useEffect(() => {
-        const checkStatus = async () => {
-            try {
-                const [statusRes, configRes] = await Promise.all([
-                    api.get('/strava/status'),
-                    api.get('/strava/config')
-                ]);
-                setStatus({
-                    connected: statusRes.data.connected,
-                    loading: false,
-                    profileUrl: statusRes.data.profileUrl,
-                    stravaId: statusRes.data.stravaId
-                });
-                setClientId(configRes.data.clientId);
-
-                if (statusRes.data.connected) {
-                    const statsRes = await api.get('/strava/stats');
-                    setStats(statsRes.data);
-                    // Initial fetch for activities
-                    fetchActivities(selectedYear, 1);
-                }
-            } catch (error) {
-                console.error("Failed to check strava status", error);
-                setStatus({ connected: false, loading: false });
-            }
-        };
-        checkStatus();
-    }, []);
-
-    const handleConnect = () => {
-        if (!clientId) {
-            toast.error("Lỗi cấu hình: Không tìm thấy Client ID.");
-            return;
-        }
-        const redirectUri = window.location.origin + '/strava/callback';
-        const scope = 'activity:read_all,profile:read_all';
-        window.location.href = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=force&scope=${scope}`;
-    };
-
-    const handleDisconnect = async () => {
-        if (window.confirm("Bạn có chắc chắn muốn ngắt kết nối với Strava?")) {
-            try {
-                await api.post('/strava/disconnect');
-                setStatus(prev => ({ ...prev, connected: false, profileUrl: null }));
-                setStats(null);
-                setActivities([]);
-            } catch (error) {
-                alert("Lỗi khi ngắt kết nối.");
-            }
-        }
-    };
-
-    const handleSync = async () => {
-        setSyncing(true);
-        try {
-            if (status.connected) {
-                const statsRes = await api.get('/strava/stats');
-                setStats(statsRes.data);
-                // Reset and re-fetch activities
-                setPage(1);
-                setActivities([]);
-                await fetchActivities(selectedYear, 1);
-            }
-            await new Promise(r => setTimeout(r, 1000));
-        } catch (error) {
-            console.error("Sync failed", error);
-        } finally {
-            setSyncing(false);
-        }
-    };
-
-    const handleYearChange = (e) => {
-        const year = parseInt(e.target.value);
-        setSelectedYear(year);
-        setPage(1);
-        setActivities([]);
-        fetchActivities(year, 1);
-    };
-
-    const loadMore = () => {
-        const nextPage = page + 1;
-        setPage(nextPage);
-        fetchActivities(selectedYear, nextPage);
-    };
-
-    if (status.loading) return <div className="text-white text-center p-8">Đang tải...</div>;
-
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 5 }, (_, i) => currentYear - i); // [2025, 2024, 2023, 2022, 2021]
-
-    return (
-        <div className="glass rounded-2xl p-8">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-white">Kết nối ứng dụng</h3>
-                <button
-                    onClick={handleSync}
-                    disabled={syncing}
-                    className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors disabled:opacity-50"
-                >
-                    <div className={`${syncing ? 'animate-spin' : ''}`}>
-                        <LinkIcon size={16} />
-                    </div>
-                    Đồng bộ dữ liệu
-                </button>
-            </div>
-
-            <div className="space-y-4">
-                {/* Strava Card */}
-                <div className="bg-white rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className="w-12 h-12 bg-[#FC4C02] rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0">
-                            S
-                        </div>
-                        <div className="overflow-hidden">
-                            {status.connected ? (
-                                <a
-                                    href={status.profileUrl || `https://www.strava.com/athletes/${status.stravaId}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-slate-600 hover:text-[#FC4C02] transition-colors truncate block text-sm sm:text-base font-medium"
-                                >
-                                    https://www.strava.com/athletes/{status.stravaId || '...'}
-                                </a>
-                            ) : (
-                                <div>
-                                    <h4 className="font-bold text-slate-800 text-lg">Strava</h4>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 w-full md:w-auto justify-end">
-                        {status.connected ? (
-                            <>
-                                <button
-                                    onClick={handleDisconnect}
-                                    className="bg-[#FC4C02] hover:bg-[#E34402] text-white px-6 py-2 rounded-full font-bold text-sm transition-colors shadow-lg shadow-orange-500/20 whitespace-nowrap"
-                                >
-                                    Ngắt kết nối Strava
-                                </button>
-                                <div className="flex items-center gap-2 text-slate-600 font-medium text-sm">
-                                    <div className="w-5 h-5 rounded-full border-[5px] border-[#FC4C02]"></div>
-                                    Mặc định
-                                </div>
-                            </>
-                        ) : (
-                            <button
-                                onClick={handleConnect}
-                                className="bg-[#FC4C02] hover:bg-[#E34402] text-white px-6 py-2 rounded-full font-bold text-sm transition-colors shadow-lg shadow-orange-500/20"
-                            >
-                                Kết nối
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Garmin Card (Placeholder) */}
-                <div className="bg-white rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 opacity-80">
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className="w-12 h-12 bg-[#000000] rounded-xl flex items-center justify-center text-white font-bold shrink-0">
-                            G
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-slate-800 text-lg">Garmin</h4>
-                        </div>
-                    </div>
-
-                    <div className="w-full md:w-auto flex justify-end">
-                        <button
-                            disabled
-                            className="bg-slate-800 text-white px-6 py-2 rounded-full font-bold text-sm transition-colors opacity-80 cursor-not-allowed"
-                        >
-                            Kết nối Garmin
-                        </button>
-                    </div>
-                </div>
-
-                {status.connected && stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/10">
-                            <h4 className="text-gray-400 text-sm mb-2">Chạy bộ (4 tuần qua)</h4>
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <span className="text-2xl font-bold text-white">{(stats.recent_run_totals?.distance ? stats.recent_run_totals.distance / 1000 : 0).toFixed(1)}</span>
-                                    <span className="text-sm text-gray-400 ml-1">km</span>
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                    {stats.recent_run_totals?.count || 0} bài tập
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/10">
-                            <h4 className="text-gray-400 text-sm mb-2">Tổng chạy bộ (Năm nay)</h4>
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <span className="text-2xl font-bold text-white">{(stats.ytd_run_totals?.distance ? stats.ytd_run_totals.distance / 1000 : 0).toFixed(1)}</span>
-                                    <span className="text-sm text-gray-400 ml-1">km</span>
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                    {stats.ytd_run_totals?.count || 0} bài tập
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-slate-800/50 p-4 rounded-xl border border-white/10">
-                            <h4 className="text-gray-400 text-sm mb-2">Tổng chạy bộ (Tất cả)</h4>
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <span className="text-2xl font-bold text-white">{(stats.all_run_totals?.distance ? stats.all_run_totals.distance / 1000 : 0).toFixed(1)}</span>
-                                    <span className="text-sm text-gray-400 ml-1">km</span>
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                    {stats.all_run_totals?.count || 0} bài tập
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {status.connected && (
-                    <div className="space-y-6 mt-8">
-                        {/* Activities List Header & Filter */}
-                        <div className="flex justify-between items-center">
-                            <h4 className="text-xl font-bold text-white">Hoạt động</h4>
-                            <select
-                                value={selectedYear}
-                                onChange={handleYearChange}
-                                className="bg-slate-800 text-white border border-white/10 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-cyan-500"
-                            >
-                                {years.map(year => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Activities List */}
-                        <div className="space-y-4">
-                            {activities.length > 0 ? (
-                                <div className="space-y-2">
-                                    {activities.map((activity) => (
-                                        <div
-                                            key={activity.id}
-                                            onClick={() => handleActivityClick(activity)}
-                                            className="bg-slate-800/50 hover:bg-slate-700/50 transition-colors p-4 rounded-xl border border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-4 cursor-pointer"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-[#FC4C02]/10 flex items-center justify-center text-[#FC4C02]">
-                                                    {activity.type === 'Run' ? <MapPin size={20} /> : <Circle size={20} />}
-                                                </div>
-                                                <div>
-                                                    <h5 className="font-bold text-white text-base">{activity.name}</h5>
-                                                    <p className="text-sm text-gray-400">
-                                                        {activity.start_date ? new Date(activity.start_date).toLocaleDateString('vi-VN') : ''} • {activity.start_date ? new Date(activity.start_date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-6 text-sm">
-                                                <div className="text-center">
-                                                    <p className="text-gray-400 text-xs uppercase">Khoảng cách</p>
-                                                    <p className="font-bold text-white">{(activity.distance ? activity.distance / 1000 : 0).toFixed(2)} km</p>
-                                                </div>
-                                                <div className="text-center">
-                                                    <p className="text-gray-400 text-xs uppercase">Thời gian</p>
-                                                    <p className="font-bold text-white">
-                                                        {activity.moving_time ? Math.floor(activity.moving_time / 60) : 0}m {activity.moving_time ? activity.moving_time % 60 : 0}s
-                                                    </p>
-                                                </div>
-                                                <div className="text-center">
-                                                    <p className="text-gray-400 text-xs uppercase">Pace</p>
-                                                    <p className="font-bold text-white">
-                                                        {activity.moving_time && activity.distance ? Math.floor((activity.moving_time / 60) / (activity.distance / 1000)) : 0}'
-                                                        {activity.moving_time && activity.distance ? Math.round(((activity.moving_time / 60) / (activity.distance / 1000) % 1) * 60) : 0}"/km
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-8 text-gray-500">
-                                    Không có hoạt động nào trong năm {selectedYear}
-                                </div>
-                            )}
-
-                            {/* Load More Button */}
-                            {activities.length > 0 && hasMore && (
-                                <div className="text-center pt-2">
-                                    <button
-                                        onClick={loadMore}
-                                        className="text-cyan-400 hover:text-cyan-300 font-medium text-sm transition-colors"
-                                    >
-                                        Xem thêm hoạt động cũ hơn
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Activity Detail Modal */}
-                <AnimatePresence>
-                    {selectedActivity && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                                onClick={() => setSelectedActivity(null)}
-                            />
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.9, opacity: 0 }}
-                                className="bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden relative z-10 flex flex-col border border-white/10"
-                            >
-                                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-slate-800">
-                                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                        {selectedActivity.type === 'Run' ? <MapPin size={20} className="text-[#FC4C02]" /> : <Circle size={20} className="text-[#FC4C02]" />}
-                                        {selectedActivity.name}
-                                    </h3>
-                                    <button onClick={() => setSelectedActivity(null)} className="text-gray-400 hover:text-white">
-                                        <X size={24} />
-                                    </button>
-                                </div>
-                                <div className="p-6 overflow-y-auto">
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-gray-400 uppercase">Khoảng cách</p>
-                                            <p className="text-xl font-bold text-white">{(selectedActivity.distance ? selectedActivity.distance / 1000 : 0).toFixed(2)} km</p>
-                                        </div>
-                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-gray-400 uppercase">Thời gian</p>
-                                            <p className="text-xl font-bold text-white">
-                                                {selectedActivity.moving_time ? Math.floor(selectedActivity.moving_time / 60) : 0}m {selectedActivity.moving_time ? selectedActivity.moving_time % 60 : 0}s
-                                            </p>
-                                        </div>
-                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-gray-400 uppercase">Pace TB</p>
-                                            <p className="text-xl font-bold text-white">
-                                                {selectedActivity.moving_time && selectedActivity.distance ? Math.floor((selectedActivity.moving_time / 60) / (selectedActivity.distance / 1000)) : 0}'
-                                                {selectedActivity.moving_time && selectedActivity.distance ? Math.round(((selectedActivity.moving_time / 60) / (selectedActivity.distance / 1000) % 1) * 60) : 0}"
-                                            </p>
-                                        </div>
-                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-gray-400 uppercase">Elevation</p>
-                                            <p className="text-xl font-bold text-white">{selectedActivity.total_elevation_gain || 0} m</p>
-                                        </div>
-                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-gray-400 uppercase">Calories</p>
-                                            <p className="text-xl font-bold text-white">{selectedActivity.calories || '-'}</p>
-                                        </div>
-                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-gray-400 uppercase">Nhịp tim TB</p>
-                                            <p className="text-xl font-bold text-white">{selectedActivity.average_heartrate || '-'}</p>
-                                        </div>
-                                        <div className="bg-slate-800 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-gray-400 uppercase">Max Speed</p>
-                                            <p className="text-xl font-bold text-white">{(selectedActivity.max_speed ? selectedActivity.max_speed * 3.6 : 0).toFixed(1)} km/h</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Real Activity Map */}
-                                    <div className="mt-4">
-                                        <ActivityMap activity={selectedActivity} />
-                                    </div>
-
-                                    <div className="mt-6 text-center">
-                                        <a
-                                            href={`https://www.strava.com/activities/${selectedActivity.id}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="inline-flex items-center gap-2 text-sm text-[#FC4C02] hover:text-[#E34402] transition-colors"
-                                        >
-                                            Xem chi tiết trên Strava <LinkIcon size={14} />
-                                        </a>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-            </div>
-        </div >
     );
 };
 

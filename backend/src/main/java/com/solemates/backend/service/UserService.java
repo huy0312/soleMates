@@ -26,4 +26,10 @@ public interface UserService {
     UserDTO getUserPublicProfile(String username);
 
     List<UserDTO> searchUsers(String keyword);
+
+    UserDTO getUserByShareToken(String token);
+
+    UserDTO generateShareToken(String email);
+
+    UserDTO updateShareToken(String email, String newToken);
 }

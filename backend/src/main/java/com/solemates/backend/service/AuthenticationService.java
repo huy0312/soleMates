@@ -50,6 +50,7 @@ public class AuthenticationService {
                                 .status(false) // Disable until verified
                                 .username(generateUniqueUsername(request.getEmail()))
                                 .referralCode(generateUniqueReferralCode())
+                                .shareToken(java.util.UUID.randomUUID().toString())
                                 .build();
                 userRepository.save(user);
 

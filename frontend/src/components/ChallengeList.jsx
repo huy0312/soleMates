@@ -13,7 +13,14 @@ const ChallengeList = ({ limit }) => {
             try {
                 const response = await api.get('/challenges?includeExpired=false');
                 // Filter and sort if needed, for now just slice if limit is provided
-                let data = response.data;
+                let data = response.data.content || response.data;
+
+                if (!Array.isArray(data)) {
+                    console.error("API response is not an array:", data);
+                    setChallenges([]);
+                    return;
+                }
+
                 // Optional: Sort by start date or status priority
                 if (limit) {
                     data = data.slice(0, limit);
