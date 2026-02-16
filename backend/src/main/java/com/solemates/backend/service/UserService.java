@@ -22,4 +22,8 @@ public interface UserService {
     UserDTO getUserProfile(String email);
 
     UserDTO updateUserProfile(String email, UpdateProfileRequest request);
+
+    UserDTO getUserPublicProfile(String username);
+
+    List<UserDTO> searchUsers(String keyword);
 }

@@ -57,7 +57,7 @@ const Navbar = () => {
         <motion.nav
             initial={{ y: -100 }}
             animate={{ y: 0 }}
-            className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'glass py-4' : 'bg-transparent py-6'
+            className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-4' : 'bg-transparent py-6'
                 }`}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,26 +65,25 @@ const Navbar = () => {
                     {/* Logo */}
                     <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
                         <img src={logo} alt="Solemates Logo" className="h-10 w-10 object-cover rounded-full" />
-                        <span className="font-bold text-xl tracking-wider uppercase hidden sm:block">Solemates</span>
+                        <span className={`font-bold text-xl tracking-wider uppercase hidden sm:block ${scrolled ? 'text-slate-900' : 'text-white'}`}>Solemates</span>
                     </div>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-6">
-                        <Link to="/" className="text-gray-300 hover:text-white transition-colors">Trang Chủ</Link>
-                        <Link to="/challenges" className="text-gray-300 hover:text-white transition-colors">Giải Đấu</Link>
-                        {user && <Link to="/forum" className="text-gray-300 hover:text-white transition-colors">Diễn đàn</Link>}
-                        <a href="/#about" className="text-gray-300 hover:text-white transition-colors">Giới Thiệu</a>
-                        <a href="/#team" className="text-gray-300 hover:text-white transition-colors">Đội Ngũ</a>
-                        <a href="/#features" className="text-gray-300 hover:text-white transition-colors">Tính Năng</a>
+                    <div className="hidden md:flex items-center space-x-8">
+                        <Link to="/" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Trang Chủ</Link>
+                        <Link to="/challenges" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Giải Đấu</Link>
+                        {user && <Link to="/forum" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Diễn đàn</Link>}
+                        <a href="/#about" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Giới Thiệu</a>
+                        <a href="/#features" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Tính Năng</a>
 
                         {user ? (
                             <div className="flex items-center gap-4 lg:gap-6">
                                 {/* Points */}
-                                <div className="hidden xl:flex items-center gap-2 bg-yellow-500/10 px-3 py-1.5 rounded-full border border-yellow-500/20 whitespace-nowrap">
-                                    <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center text-[10px] font-bold text-black">
+                                <div className={`hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full border whitespace-nowrap ${scrolled ? 'bg-orange-50 border-orange-100' : 'bg-white/10 border-white/20'}`}>
+                                    <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-[10px] font-bold text-white">
                                         P
                                     </div>
-                                    <span className="font-bold text-yellow-500">{user.points || 0}</span>
+                                    <span className={`font-bold ${scrolled ? 'text-orange-600' : 'text-orange-400'}`}>{user.points || 0}</span>
                                 </div>
 
                                 {/* Notifications */}
@@ -92,9 +91,9 @@ const Navbar = () => {
                                     <div className="relative" ref={notificationRef}>
                                         <button
                                             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                            className="relative p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors focus:outline-none"
+                                            className={`relative p-2 rounded-full transition-colors focus:outline-none ${scrolled ? 'text-slate-600 hover:bg-slate-100' : 'text-white/90 hover:bg-white/10'}`}
                                         >
-                                            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900"></div>
+                                            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
                                             <Bell size={20} />
                                         </button>
 
@@ -105,13 +104,13 @@ const Navbar = () => {
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                                     transition={{ duration: 0.2 }}
-                                                    className="absolute right-0 mt-2 w-80 glass rounded-xl overflow-hidden shadow-2xl border border-white/10 max-h-96 overflow-y-auto"
+                                                    className="absolute right-0 mt-2 w-80 bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-100 max-h-96 overflow-y-auto"
                                                 >
-                                                    <div className="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
-                                                        <h4 className="font-bold text-white text-sm">Thông Báo</h4>
-                                                        <span className="text-xs text-gray-400">Đánh dấu đã đọc</span>
+                                                    <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                                                        <h4 className="font-bold text-slate-900 text-sm">Thông Báo</h4>
+                                                        <span className="text-xs text-slate-500 cursor-pointer hover:text-orange-500">Đánh dấu đã đọc</span>
                                                     </div>
-                                                    <div className="p-8 text-center text-gray-500 text-sm">
+                                                    <div className="p-8 text-center text-slate-400 text-sm">
                                                         <Bell size={32} className="mx-auto mb-2 opacity-50" />
                                                         <p>Bạn chưa có thông báo mới nào.</p>
                                                     </div>
@@ -122,10 +121,10 @@ const Navbar = () => {
 
                                     <button
                                         onClick={() => navigate('/cart')}
-                                        className="relative p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors"
+                                        className={`relative p-2 rounded-full transition-colors ${scrolled ? 'text-slate-600 hover:bg-slate-100' : 'text-white/90 hover:bg-white/10'}`}
                                     >
                                         {cartItemCount > 0 && (
-                                            <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white border border-slate-900">
+                                            <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white border border-white">
                                                 {cartItemCount}
                                             </div>
                                         )}
@@ -133,24 +132,24 @@ const Navbar = () => {
                                     </button>
                                 </div>
 
-                                <div className="w-px h-8 bg-white/10 hidden lg:block"></div>
+                                <div className={`w-px h-8 hidden lg:block ${scrolled ? 'bg-slate-200' : 'bg-white/20'}`}></div>
 
                                 <div className="relative" ref={dropdownRef}>
                                     <button
                                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                         className="flex items-center gap-3 focus:outline-none"
                                     >
-                                        <div className="w-10 h-10 rounded-full border border-white/20 bg-white/10 overflow-hidden flex items-center justify-center">
+                                        <div className={`w-10 h-10 rounded-full border overflow-hidden flex items-center justify-center ${scrolled ? 'border-slate-200 bg-slate-100' : 'border-white/20 bg-white/10'}`}>
                                             {user.avatarUrl ? (
                                                 <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                             ) : (
-                                                <User size={20} className="text-cyan-400" />
+                                                <User size={20} className={scrolled ? 'text-slate-400' : 'text-white/80'} />
                                             )}
                                         </div>
-                                        <span className="text-white font-medium flex items-center gap-1 max-w-[150px] truncate">
+                                        <span className={`font-medium flex items-center gap-1 max-w-[150px] truncate ${scrolled ? 'text-slate-900' : 'text-white'}`}>
                                             {user.fullName || user.email?.split('@')[0]}
                                         </span>
-                                        <ChevronDown size={14} className={`transform transition-transform text-gray-400 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={14} className={`transform transition-transform ${scrolled ? 'text-slate-400' : 'text-white/60'} ${isDropdownOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     <AnimatePresence>
@@ -160,23 +159,23 @@ const Navbar = () => {
                                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                                 transition={{ duration: 0.2 }}
-                                                className="absolute right-0 mt-2 w-80 glass rounded-xl overflow-hidden shadow-2xl border border-white/10"
+                                                className="absolute right-0 mt-2 w-80 bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-100 ring-1 ring-black/5"
                                             >
                                                 {/* Rank Card */}
-                                                <div className="p-4 border-b border-white/10 bg-white/5">
+                                                <div className="p-4 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white">
                                                     <div className="flex items-start gap-3">
-                                                        <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center border border-white/10 shadow-inner">
-                                                            <Pentagon size={24} className="text-slate-300 fill-slate-500/50" />
+                                                        <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-slate-200 shadow-sm">
+                                                            <Pentagon size={24} className="text-orange-500 fill-orange-100" />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <h4 className="font-bold text-white mb-2">{user.rank}</h4>
-                                                            <div className="relative h-2 w-full bg-slate-700/50 rounded-full overflow-hidden mb-1">
+                                                            <h4 className="font-bold text-slate-900 mb-2">{user.rank}</h4>
+                                                            <div className="relative h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-1">
                                                                 <div
-                                                                    className="absolute left-0 top-0 h-full bg-red-500 rounded-full transition-all duration-500 ease-out"
+                                                                    className="absolute left-0 top-0 h-full bg-orange-500 rounded-full transition-all duration-500 ease-out"
                                                                     style={{ width: `${user.rankProgress || 0}%` }}
                                                                 ></div>
                                                             </div>
-                                                            <div className="flex justify-between text-xs text-gray-400">
+                                                            <div className="flex justify-between text-xs text-slate-500">
                                                                 <span>{Math.round(user.rankProgress || 0)}%</span>
                                                                 <span>
                                                                     {user.points || 0}
@@ -191,29 +190,29 @@ const Navbar = () => {
                                                 <div className="py-2">
                                                     <Link
                                                         to="/profile"
-                                                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors"
                                                         onClick={() => setIsDropdownOpen(false)}
                                                     >
-                                                        <User size={18} className="text-gray-400" /> Trang cá nhân
+                                                        <User size={18} className="text-slate-400" /> Trang cá nhân
                                                     </Link>
                                                     <Link
                                                         to="#"
-                                                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors"
                                                         onClick={() => setIsDropdownOpen(false)}
                                                     >
-                                                        <Smartphone size={18} className="text-gray-400" /> Liên kết ứng dụng đồng bộ kết quả
+                                                        <Smartphone size={18} className="text-slate-400" /> Liên kết ứng dụng
                                                     </Link>
                                                     <Link
                                                         to="#"
-                                                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors"
                                                         onClick={() => setIsDropdownOpen(false)}
                                                     >
-                                                        <HelpCircle size={18} className="text-gray-400" /> Hướng dẫn người mới
+                                                        <HelpCircle size={18} className="text-slate-400" /> Hướng dẫn người mới
                                                     </Link>
-                                                    <div className="border-t border-white/10 my-1"></div>
+                                                    <div className="border-t border-slate-100 my-1"></div>
                                                     <button
                                                         onClick={handleLogoutClick}
-                                                        className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors"
+                                                        className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors"
                                                     >
                                                         <LogOut size={18} /> Đăng xuất
                                                     </button>
@@ -221,10 +220,10 @@ const Navbar = () => {
 
                                                 {/* Admin Link */}
                                                 {user.role === 'ADMIN' && (
-                                                    <div className="border-t border-white/10 pt-1 pb-2">
+                                                    <div className="border-t border-slate-100 pt-1 pb-2">
                                                         <Link
                                                             to="/admin"
-                                                            className="flex items-center gap-3 px-4 py-3 text-sm text-cyan-400 hover:bg-white/10 hover:text-cyan-300 transition-colors font-medium"
+                                                            className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors font-medium"
                                                             onClick={() => setIsDropdownOpen(false)}
                                                         >
                                                             <LayoutDashboard size={18} /> Admin Portal
@@ -239,7 +238,7 @@ const Navbar = () => {
                         ) : (
                             <button
                                 onClick={handleLoginClick}
-                                className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-6 py-2 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg shadow-violet-500/20 cursor-pointer"
+                                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2.5 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg shadow-orange-500/20 cursor-pointer"
                             >
                                 Tham Gia
                             </button>
@@ -248,7 +247,7 @@ const Navbar = () => {
 
                     {/* Mobile Menu Button */}
                     <div className="md:hidden">
-                        <button onClick={() => setIsOpen(!isOpen)} className="text-white focus:outline-none">
+                        <button onClick={() => setIsOpen(!isOpen)} className={`${scrolled ? 'text-slate-900' : 'text-white'} focus:outline-none`}>
                             {isOpen ? <X size={28} /> : <Menu size={28} />}
                         </button>
                     </div>
@@ -260,35 +259,34 @@ const Navbar = () => {
                 <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="md:hidden glass border-t border-white/10"
+                    className="md:hidden bg-white border-t border-slate-100 shadow-xl"
                 >
                     <div className="px-4 pt-4 pb-8 space-y-4 flex flex-col items-center">
-                        <Link to="/" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Trang Chủ</Link>
-                        <Link to="/challenges" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Giải Đấu</Link>
-                        {user && <Link to="/forum" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Diễn đàn</Link>}
-                        <a href="/#about" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Giới Thiệu</a>
-                        <a href="/#team" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Đội Ngũ</a>
-                        <a href="/#features" className="text-gray-300 hover:text-white text-lg" onClick={() => setIsOpen(false)}>Tính Năng</a>
+                        <Link to="/" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Trang Chủ</Link>
+                        <Link to="/challenges" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giải Đấu</Link>
+                        {user && <Link to="/forum" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Diễn đàn</Link>}
+                        <a href="/#about" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giới Thiệu</a>
+                        <a href="/#features" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Tính Năng</a>
 
                         {user ? (
-                            <div className="w-full flex flex-col items-center gap-4 pt-4 border-t border-white/10">
+                            <div className="w-full flex flex-col items-center gap-4 pt-4 border-t border-slate-100">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full border border-white/20 bg-white/10 overflow-hidden flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
                                         {user.avatarUrl ? (
                                             <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                         ) : (
-                                            <User size={20} className="text-cyan-400" />
+                                            <User size={20} className="text-slate-400" />
                                         )}
                                     </div>
-                                    <span className="text-cyan-400 font-medium">
+                                    <span className="text-slate-900 font-bold">
                                         {user.fullName || user.email?.split('@')[0]}
                                     </span>
                                 </div>
 
-                                <Link to="/profile" onClick={() => setIsOpen(false)} className="text-gray-300 hover:text-white transition-colors">Hồ Sơ Cá Nhân</Link>
+                                <Link to="/profile" onClick={() => setIsOpen(false)} className="text-slate-600 hover:text-orange-500 transition-colors">Hồ Sơ Cá Nhân</Link>
                                 <button
                                     onClick={() => { handleLogoutClick(); setIsOpen(false); }}
-                                    className="w-full bg-red-500/20 text-red-200 px-6 py-3 rounded-full font-medium hover:bg-red-500/30 transition-colors"
+                                    className="w-full bg-red-50 text-red-500 px-6 py-3 rounded-full font-medium hover:bg-red-100 transition-colors"
                                 >
                                     Đăng Xuất
                                 </button>
@@ -296,7 +294,7 @@ const Navbar = () => {
                         ) : (
                             <button
                                 onClick={() => { handleLoginClick(); setIsOpen(false); }}
-                                className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white px-6 py-3 rounded-full font-medium"
+                                className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-orange-500/20"
                             >
                                 Tham Gia
                             </button>

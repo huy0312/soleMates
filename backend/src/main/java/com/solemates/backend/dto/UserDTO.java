@@ -11,6 +11,8 @@ import java.time.LocalDate;
 public class UserDTO {
     private Long id;
     private String email;
+    private String username;
+    private String referralCode;
     private UserRole role;
     private String fullName;
     private Gender gender;

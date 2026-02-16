@@ -71,42 +71,42 @@ const Register = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="max-w-[1000px] w-full h-[600px] bg-[#1a1b2e] rounded-3xl shadow-2xl overflow-hidden flex relative"
+                    className="max-w-[1000px] w-full h-[600px] bg-white rounded-3xl shadow-2xl overflow-hidden flex relative"
                 >
                     <div className="w-1/2 hidden lg:block relative">
                         <div className="absolute inset-0">
                             <img
                                 src={loginBg}
                                 alt="Running Background"
-                                className="w-full h-full object-cover opacity-60"
+                                className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1b2e] via-[#1a1b2e]/40 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                         </div>
                         <div className="relative z-10 p-8">
-                            <Link to="/" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md transition-all text-white text-sm font-medium">
+                            <Link to="/" className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full backdrop-blur-md transition-all text-white text-sm font-medium border border-white/20">
                                 <ArrowLeft size={16} />
                                 Quay lại trang chủ
                             </Link>
                         </div>
                     </div>
 
-                    <div className="w-full lg:w-1/2 p-12 flex flex-col items-center justify-center text-center bg-[#1a1b2e] text-white">
+                    <div className="w-full lg:w-1/2 p-12 flex flex-col items-center justify-center text-center bg-white text-slate-900">
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", stiffness: 200, damping: 20 }}
                         >
-                            <CheckCircle size={80} className="text-green-400 mb-6" />
+                            <CheckCircle size={80} className="text-green-500 mb-6" />
                         </motion.div>
                         <h2 className="text-3xl font-bold mb-4">Đăng ký thành công!</h2>
-                        <p className="text-gray-400 mb-8 max-w-sm">
+                        <p className="text-slate-500 mb-8 max-w-sm">
                             Chúng tôi đã gửi liên kết xác thực đến email của bạn. Vui lòng kiểm tra hộp thư đến để kích hoạt tài khoản.
                         </p>
-                        <Link to="/login" className="px-8 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-medium transition-all shadow-lg shadow-violet-600/20">
+                        <Link to="/login" className="px-8 py-3 bg-orange-500 hover:bg-orange-600 rounded-xl font-bold text-white transition-all shadow-lg shadow-orange-500/20">
                             Quay lại Đăng nhập
                         </Link>
                     </div>
@@ -116,12 +116,12 @@ const Register = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-[#0f172a]">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="max-w-[1000px] w-full h-[750px] bg-[#1a1b2e] rounded-3xl shadow-2xl overflow-hidden flex relative"
+                className="max-w-[1000px] w-full h-[750px] bg-[#1e293b] rounded-3xl shadow-2xl overflow-hidden flex relative"
             >
                 {/* Left Side - Image */}
                 <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-8 text-white">
@@ -129,13 +129,13 @@ const Register = () => {
                         <img
                             src={loginBg}
                             alt="Running Background"
-                            className="w-full h-full object-cover opacity-60"
+                            className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1b2e] via-[#1a1b2e]/40 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                     </div>
 
                     <div className="relative z-10">
-                        <Link to="/" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md transition-all text-sm font-medium">
+                        <Link to="/" className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full backdrop-blur-md transition-all text-sm font-medium border border-white/20">
                             <ArrowLeft size={16} />
                             Quay lại trang chủ
                         </Link>
@@ -143,24 +143,24 @@ const Register = () => {
 
                     <div className="relative z-10 mb-8">
                         <h2 className="text-4xl font-bold mb-4">Vượt qua Giới hạn,<br />Gặt hái Thành công</h2>
-                        <p className="text-gray-300">Bắt đầu hành trình của bạn với chúng tôi ngay hôm nay.</p>
+                        <p className="text-gray-200">Bắt đầu hành trình của bạn với chúng tôi ngay hôm nay.</p>
 
                         {/* Slider Dots Placeholder */}
                         <div className="flex gap-2 mt-6">
-                            <div className="w-8 h-1 bg-white/30 rounded-full"></div>
-                            <div className="w-8 h-1 bg-white rounded-full"></div>
-                            <div className="w-8 h-1 bg-white/30 rounded-full"></div>
+                            <div className="w-8 h-1 bg-white/50 rounded-full"></div>
+                            <div className="w-8 h-1 bg-orange-500 rounded-full"></div>
+                            <div className="w-8 h-1 bg-white/50 rounded-full"></div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Side - Form */}
-                <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col bg-[#1a1b2e] overflow-y-auto custom-scrollbar">
+                <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col bg-[#1e293b] overflow-y-auto custom-scrollbar">
                     <div className="max-w-md w-full mx-auto min-h-full flex flex-col justify-center">
                         <h2 className="text-3xl font-bold text-white mb-2">Đăng ký tài khoản</h2>
-                        <p className="text-gray-400 mb-6">
+                        <p className="text-slate-400 mb-6">
                             Đã có tài khoản?
-                            <Link to="/login" className="text-violet-400 hover:text-violet-300 ml-1 font-medium transition-colors">
+                            <Link to="/login" className="text-orange-500 hover:text-orange-600 ml-1 font-bold transition-colors">
                                 Đăng nhập
                             </Link>
                         </p>
@@ -178,44 +178,44 @@ const Register = () => {
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Họ và Tên</label>
+                                <label className="text-sm font-bold text-slate-300">Họ và Tên</label>
                                 <input
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
+                                    className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-white placeholder-slate-500 transition-all font-medium"
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Email</label>
+                                <label className="text-sm font-bold text-slate-300">Email</label>
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
+                                    className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-white placeholder-slate-500 transition-all font-medium"
                                     placeholder="name@example.com"
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Mật khẩu</label>
+                                <label className="text-sm font-bold text-slate-300">Mật khẩu</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={handlePasswordChange}
-                                        className="w-full pl-10 pr-12 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
+                                        className="w-full pl-10 pr-12 py-3 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-white placeholder-slate-500 transition-all font-medium"
                                         placeholder="••••••••"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-300"
                                     >
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
@@ -232,13 +232,13 @@ const Register = () => {
                                                         : strength === 3
                                                             ? 'bg-yellow-500'
                                                             : 'bg-green-500'
-                                                    : 'bg-gray-700'
+                                                    : 'bg-slate-700'
                                                     }`}
                                             ></div>
                                         ))}
                                     </div>
                                 )}
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-slate-500 mt-1">
                                     {strength === 0 && 'Quá yếu'}
                                     {strength === 1 && 'Yếu'}
                                     {strength === 2 && 'Trung bình'}
@@ -248,21 +248,21 @@ const Register = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400">Nhập lại mật khẩu</label>
+                                <label className="text-sm font-bold text-slate-300">Nhập lại mật khẩu</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
                                     <input
                                         type={showConfirmPassword ? "text" : "password"}
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full pl-10 pr-12 py-3 bg-[#242641] border border-gray-700/50 rounded-xl focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-white placeholder-gray-600 transition-all"
+                                        className="w-full pl-10 pr-12 py-3 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-white placeholder-slate-500 transition-all font-medium"
                                         placeholder="••••••••"
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-300"
                                     >
                                         {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
@@ -275,12 +275,12 @@ const Register = () => {
                                     id="agree"
                                     checked={agreed}
                                     onChange={(e) => setAgreed(e.target.checked)}
-                                    className="w-4 h-4 rounded border-gray-600 bg-[#242641] text-violet-600 focus:ring-violet-500 focus:ring-offset-[#1a1b2e]"
+                                    className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-orange-600 focus:ring-orange-500"
                                 />
-                                <label htmlFor="agree" className="text-sm text-gray-400 select-none">
+                                <label htmlFor="agree" className="text-sm text-slate-400 select-none">
                                     Tôi đồng ý với{' '}
                                     <span
-                                        className="text-violet-400 hover:text-violet-300 cursor-pointer relative"
+                                        className="text-orange-500 hover:text-orange-600 cursor-pointer relative font-medium"
                                         onMouseEnter={() => setShowTerms(true)}
                                         onMouseLeave={() => setShowTerms(false)}
                                     >
@@ -295,7 +295,7 @@ const Register = () => {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: 10 }}
-                                            className="absolute bottom-full left-0 mb-2 w-64 p-4 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 text-xs text-gray-300 pointer-events-none"
+                                            className="absolute bottom-full left-0 mb-2 w-64 p-4 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 text-xs text-slate-300 pointer-events-none"
                                         >
                                             <div className="font-bold text-white mb-2">Điều khoản sử dụng</div>
                                             <p>
@@ -310,7 +310,7 @@ const Register = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-violet-600 text-white py-3.5 rounded-xl font-medium hover:bg-violet-500 transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-600/20 mt-2"
+                                className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold hover:bg-orange-600 transform transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/20 mt-2"
                             >
                                 {isLoading ? (
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
@@ -321,19 +321,19 @@ const Register = () => {
 
                             <div className="relative my-6">
                                 <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-700/50"></div>
+                                    <div className="w-full border-t border-slate-700"></div>
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-[#1a1b2e] px-2 text-gray-500">Hoặc đăng ký với</span>
+                                    <span className="bg-[#1e293b] px-2 text-slate-400 font-medium">Hoặc đăng ký với</span>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <button type="button" className="flex items-center justify-center gap-2 px-4 py-3 bg-[#242641] hover:bg-[#2d3052] border border-gray-700/30 rounded-xl text-white transition-colors">
+                                <button type="button" className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 transition-colors font-medium">
                                     <Chrome size={18} />
                                     <span className="text-sm">Google</span>
                                 </button>
-                                <button type="button" className="flex items-center justify-center gap-2 px-4 py-3 bg-[#242641] hover:bg-[#2d3052] border border-gray-700/30 rounded-xl text-white transition-colors">
+                                <button type="button" className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 transition-colors font-medium">
                                     <Apple size={18} />
                                     <span className="text-sm">Apple</span>
                                 </button>

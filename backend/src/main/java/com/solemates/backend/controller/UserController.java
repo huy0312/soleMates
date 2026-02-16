@@ -26,4 +26,14 @@ public class UserController {
             @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(userService.updateUserProfile(authentication.getName(), request));
     }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<UserDTO> getUserPublicProfile(@PathVariable String username) {
+        return ResponseEntity.ok(userService.getUserPublicProfile(username));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<java.util.List<UserDTO>> searchUsers(@RequestParam String q) {
+        return ResponseEntity.ok(userService.searchUsers(q));
+    }
 }

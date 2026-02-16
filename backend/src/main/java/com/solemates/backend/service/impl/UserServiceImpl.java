@@ -105,6 +105,28 @@ public class UserServiceImpl implements UserService {
         return mapToDTO(user, savedProfile);
     }
 
+    @Override
+    public UserDTO getUserPublicProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        MemberProfile profile = memberProfileRepository.findByUser(user)
+                .orElse(null);
+
+        return mapToDTO(user, profile);
+    }
+
+    @Override
+    public List<UserDTO> searchUsers(String keyword) {
+        List<User> users = userRepository.searchUsers(keyword);
+        return users.stream()
+                .map(user -> {
+                    MemberProfile profile = memberProfileRepository.findByUser(user).orElse(null);
+                    return mapToDTO(user, profile);
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     private UserDTO mapToDTO(User user, MemberProfile profile) {
         // Calculate Rank
         int points = profile != null && profile.getPoints() != null ? profile.getPoints() : 0;
@@ -115,6 +137,8 @@ public class UserServiceImpl implements UserService {
         return UserDTO.builder()
                 .id(user.getUserId())
                 .email(user.getEmail())
+                .username(user.getUsername())
+                .referralCode(user.getReferralCode())
                 .role(user.getRole().getRoleName())
                 .fullName(profile != null ? profile.getFullName() : null)
                 .gender(profile != null ? profile.getGender() : null)

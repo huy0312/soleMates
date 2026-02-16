@@ -48,6 +48,8 @@ public class AuthenticationService {
                                 .password(passwordEncoder.encode(request.getPassword()))
                                 .role(role)
                                 .status(false) // Disable until verified
+                                .username(generateUniqueUsername(request.getEmail()))
+                                .referralCode(generateUniqueReferralCode())
                                 .build();
                 userRepository.save(user);
 
@@ -109,5 +111,28 @@ public class AuthenticationService {
                 verificationTokenRepository.delete(verificationToken);
 
                 return "Account verified successfully. You can now login.";
+        }
+
+        private String generateUniqueUsername(String email) {
+                String baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9]", "");
+                String username = baseUsername;
+                int count = 1;
+                while (userRepository.findByUsername(username).isPresent()) {
+                        username = baseUsername + count++;
+                }
+                return username;
+        }
+
+        private String generateUniqueReferralCode() {
+                String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                StringBuilder code = new StringBuilder();
+                java.util.Random rnd = new java.util.Random();
+                while (code.length() == 0 || userRepository.findByReferralCode(code.toString()).isPresent()) {
+                        code.setLength(0); // Reset
+                        for (int i = 0; i < 8; i++) {
+                                code.append(chars.charAt(rnd.nextInt(chars.length())));
+                        }
+                }
+                return code.toString();
         }
 }

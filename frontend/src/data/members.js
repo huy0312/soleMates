@@ -1,4 +1,4 @@
-import avatar from '../assets/avatar.png';
+
 import nguyenHuuHuy from '../assets/team/nguyen_huu_huy.png';
 import phamTuanMinh from '../assets/team/pham_tuan_minh.png';
 import quocPhuong from '../assets/team/quoc_phuong.png';

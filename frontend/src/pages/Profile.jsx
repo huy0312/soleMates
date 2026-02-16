@@ -240,6 +240,39 @@ const Profile = () => {
 
                         <div className="w-full border-t border-white/10 pt-4 flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
                             {/* Friends Count Placeholder - Hidden until implemented */}
+                            <div className="flex flex-col gap-2 w-full px-4">
+                                <div className="flex items-center justify-between text-sm glass p-3 rounded-xl border-white/5 bg-slate-800/50">
+                                    <span className="text-gray-400">Mã giới thiệu:</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-white font-mono font-bold tracking-wider">{user.referralCode || '---'}</span>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(user.referralCode);
+                                                // Assuming we have access to setMessage or a toast function
+                                            }}
+                                            className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                                            title="Sao chép mã"
+                                        >
+                                            <FileText size={14} className="text-cyan-400" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between text-sm glass p-3 rounded-xl border-white/5 bg-slate-800/50">
+                                    <span className="text-gray-400">Link hồ sơ:</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-white font-mono text-xs max-w-[100px] truncate">{window.location.host}/u/{user.username || '...'}</span>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/u/${user.username}`);
+                                            }}
+                                            className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                                            title="Sao chép liên kết"
+                                        >
+                                            <LinkIcon size={14} className="text-cyan-400" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             {/* <Users size={16} />
                             <span>0 bạn bè</span> */}
                         </div>
@@ -515,10 +548,62 @@ const Profile = () => {
                         )}
 
                         {activeTab === 'friends' && (
-                            <div className="glass rounded-2xl p-12 text-center text-gray-400">
-                                <Users size={48} className="mx-auto mb-4 opacity-50" />
-                                <h3 className="text-xl font-medium text-white mb-2">Chưa có bạn bè</h3>
-                                <p>Kết nối với những người chạy bộ khác để cùng nhau luyện tập!</p>
+                            <div className="space-y-6">
+                                {/* Search Section */}
+                                <div className="glass rounded-2xl p-6">
+                                    <h3 className="text-lg font-bold text-white mb-4">Tìm kiếm bạn bè</h3>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Nhập tên, mã giới thiệu hoặc email..."
+                                            className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white pl-12"
+                                            onKeyDown={async (e) => {
+                                                if (e.key === 'Enter') {
+                                                    const val = e.target.value;
+                                                    if (!val) return;
+                                                    try {
+                                                        const res = await api.get(`/users/search?q=${val}`);
+                                                        // For now, just logging or setting state (need to add state for search results)
+                                                        // Let's add a local state for this in the component
+                                                        const event = new CustomEvent('search-friends', { detail: res.data });
+                                                        window.dispatchEvent(event);
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                    }
+                                                }
+                                            }}
+                                            onChange={(e) => {
+                                                // Debounce search could go here
+                                            }}
+                                            id="friend-search-input"
+                                        />
+                                        <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                                        <button
+                                            onClick={() => {
+                                                const input = document.getElementById('friend-search-input');
+                                                const val = input.value;
+                                                if (val) {
+                                                    api.get(`/users/search?q=${val}`).then(res => {
+                                                        const event = new CustomEvent('search-friends', { detail: res.data });
+                                                        window.dispatchEvent(event);
+                                                    });
+                                                }
+                                            }}
+                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                                        >
+                                            Tìm
+                                        </button>
+                                    </div>
+
+                                    {/* Search Results Area - handled by FriendsTab component (which we will create or inline) */}
+                                    <AuthorSearchResult />
+                                </div>
+
+                                <div className="glass rounded-2xl p-12 text-center text-gray-400">
+                                    <Users size={48} className="mx-auto mb-4 opacity-50" />
+                                    <h3 className="text-xl font-medium text-white mb-2">Danh sách bạn bè</h3>
+                                    <p>Chức năng kết bạn đang được phát triển.</p>
+                                </div>
                             </div>
                         )}
 
@@ -652,6 +737,43 @@ const Profile = () => {
                     </div>
                 )}
             </AnimatePresence>
+        </div>
+    );
+};
+
+const AuthorSearchResult = () => {
+    const [results, setResults] = useState([]);
+    const [searched, setSearched] = useState(false);
+
+    useEffect(() => {
+        const handleSearch = (e) => {
+            setResults(e.detail);
+            setSearched(true);
+        };
+        window.addEventListener('search-friends', handleSearch);
+        return () => window.removeEventListener('search-friends', handleSearch);
+    }, []);
+
+    if (!searched) return null;
+
+    if (results.length === 0) {
+        return <div className="text-center text-gray-400 py-4">Không tìm thấy người dùng nào.</div>;
+    }
+
+    return (
+        <div className="mt-4 space-y-3">
+            {results.map(u => (
+                <div key={u.id} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl hover:bg-slate-700/50 transition-colors border border-white/5">
+                    <img src={u.avatarUrl || 'https://via.placeholder.com/40'} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
+                    <div className="flex-1">
+                        <div className="font-medium text-white">{u.fullName}</div>
+                        <div className="text-xs text-gray-400">@{u.username}</div>
+                    </div>
+                    <a href={`/u/${u.username}`} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm font-medium px-3 py-1 rounded-full border border-cyan-400/20 hover:bg-cyan-400/10 transition-all">
+                        Xem
+                    </a>
+                </div>
+            ))}
         </div>
     );
 };
