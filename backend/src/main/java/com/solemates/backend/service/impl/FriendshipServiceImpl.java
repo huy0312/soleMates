@@ -33,6 +33,10 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Cannot send friend request to yourself");
         }
 
+        if (requester.getRole().getRoleName() == com.solemates.backend.enums.UserRole.ADMIN) {
+            throw new RuntimeException("Admin cannot send friend requests");
+        }
+
         Optional<Friendship> existing = friendshipRepository.findFriendshipBetween(requester, receiver);
         if (existing.isPresent()) {
             Friendship f = existing.get();
