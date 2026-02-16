@@ -105,6 +105,61 @@ public class UserServiceImpl implements UserService {
         return mapToDTO(user, savedProfile);
     }
 
+    @Override
+    public UserDTO getUserPublicProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        MemberProfile profile = memberProfileRepository.findByUser(user)
+                .orElse(null);
+
+        return mapToDTO(user, profile);
+    }
+
+    @Override
+    public List<UserDTO> searchUsers(String keyword) {
+        List<User> users = userRepository.searchUsers(keyword);
+        return users.stream()
+                .map(user -> {
+                    MemberProfile profile = memberProfileRepository.findByUser(user).orElse(null);
+                    return mapToDTO(user, profile);
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public UserDTO getUserByShareToken(String token) {
+        User user = userRepository.findByShareToken(token)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        MemberProfile profile = memberProfileRepository.findByUser(user)
+                .orElse(null);
+
+        return mapToDTO(user, profile);
+    }
+
+    @Override
+    @Transactional
+    public UserDTO generateShareToken(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getUsername() == null) {
+            user.setUsername(generateUniqueUsername(email));
+        }
+        if (user.getReferralCode() == null) {
+            user.setReferralCode(generateUniqueReferralCode());
+        }
+
+        user.setShareToken(java.util.UUID.randomUUID().toString());
+        userRepository.save(user);
+
+        MemberProfile profile = memberProfileRepository.findByUser(user)
+                .orElse(null);
+
+        return mapToDTO(user, profile);
+    }
+
     private UserDTO mapToDTO(User user, MemberProfile profile) {
         // Calculate Rank
         int points = profile != null && profile.getPoints() != null ? profile.getPoints() : 0;
@@ -115,6 +170,9 @@ public class UserServiceImpl implements UserService {
         return UserDTO.builder()
                 .id(user.getUserId())
                 .email(user.getEmail())
+                .username(user.getUsername())
+                .referralCode(user.getReferralCode())
+                .shareToken(user.getShareToken())
                 .role(user.getRole().getRoleName())
                 .fullName(profile != null ? profile.getFullName() : null)
                 .gender(profile != null ? profile.getGender() : null)
@@ -135,5 +193,53 @@ public class UserServiceImpl implements UserService {
                 .rankProgress(progress)
                 .stravaId(user.getStravaId())
                 .build();
+    }
+
+    private String generateUniqueUsername(String email) {
+        String baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9]", "");
+        String username = baseUsername;
+        int count = 1;
+        while (userRepository.findByUsername(username).isPresent()) {
+            username = baseUsername + count++;
+        }
+        return username;
+    }
+
+    private String generateUniqueReferralCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder code = new StringBuilder();
+        java.util.Random rnd = new java.util.Random();
+        while (code.length() == 0 || userRepository.findByReferralCode(code.toString()).isPresent()) {
+            code.setLength(0); // Reset
+            for (int i = 0; i < 8; i++) {
+                code.append(chars.charAt(rnd.nextInt(chars.length())));
+            }
+        }
+        return code.toString();
+    }
+
+    @Override
+    @Transactional
+    public UserDTO updateShareToken(String email, String newToken) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!newToken.matches("^[a-zA-Z0-9._-]{3,30}$")) {
+            throw new RuntimeException(
+                    "Link không hợp lệ. Chỉ chấp nhận chữ, số, dấu chấm, gạch dưới và gạch ngang (3-30 ký tự).");
+        }
+
+        Optional<User> existingUser = userRepository.findByShareToken(newToken);
+        if (existingUser.isPresent() && !existingUser.get().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("Link này đã có người sử dụng.");
+        }
+
+        user.setShareToken(newToken);
+        userRepository.save(user);
+
+        MemberProfile profile = memberProfileRepository.findByUser(user)
+                .orElse(null);
+
+        return mapToDTO(user, profile);
     }
 }

@@ -22,6 +22,15 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
+    @Column(unique = true)
+    private String username;
+
+    @Column(unique = true)
+    private String referralCode;
+
+    @Column(unique = true)
+    private String shareToken;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;

@@ -22,4 +22,14 @@ public interface UserService {
     UserDTO getUserProfile(String email);
 
     UserDTO updateUserProfile(String email, UpdateProfileRequest request);
+
+    UserDTO getUserPublicProfile(String username);
+
+    List<UserDTO> searchUsers(String keyword);
+
+    UserDTO getUserByShareToken(String token);
+
+    UserDTO generateShareToken(String email);
+
+    UserDTO updateShareToken(String email, String newToken);
 }

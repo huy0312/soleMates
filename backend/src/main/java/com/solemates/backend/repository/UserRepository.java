@@ -10,4 +10,13 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByUsername(String username);
+
+    Optional<User> findByReferralCode(String referralCode);
+
+    Optional<User> findByShareToken(String shareToken);
+
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u LEFT JOIN u.memberProfile p WHERE u.username LIKE %:keyword% OR p.fullName LIKE %:keyword% OR u.referralCode = :keyword")
+    java.util.List<User> searchUsers(@org.springframework.data.repository.query.Param("keyword") String keyword);
+
 }

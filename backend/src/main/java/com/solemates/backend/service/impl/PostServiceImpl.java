@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,7 +50,7 @@ public class PostServiceImpl implements PostService {
             // If not, fetch from Strava and save
             if (activity == null) {
                 try {
-                    JsonNode stravaActivity = stravaService.getActivity(request.getActivityId());
+                    Map<String, Object> stravaActivity = stravaService.getActivity(request.getActivityId());
                     activity = mapToActivityEntity(stravaActivity, user);
                     activityRepository.save(activity);
                 } catch (Exception e) {
@@ -247,25 +248,26 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private Activity mapToActivityEntity(JsonNode node, User user) {
+    private Activity mapToActivityEntity(Map<String, Object> data, User user) {
         Activity.ActivityBuilder builder = Activity.builder();
 
-        builder.activityId(node.get("id").asLong());
+        builder.activityId(((Number) data.get("id")).longValue());
         if (user.getMemberProfile() != null) {
             builder.memberProfile(user.getMemberProfile());
         }
-        builder.name(node.get("name").asText());
-        builder.distance(node.get("distance").asDouble());
-        builder.movingTime(node.get("moving_time").asInt());
+        builder.name((String) data.get("name"));
+        builder.distance(((Number) data.get("distance")).doubleValue());
+        builder.movingTime(((Number) data.get("moving_time")).intValue());
 
-        String startDate = node.get("start_date_local").asText();
+        String startDate = (String) data.get("start_date_local");
         try {
             builder.startTime(LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME));
         } catch (Exception e) {
             builder.startTime(LocalDateTime.now());
         }
 
-        builder.averagePace(node.path("average_speed").asDouble());
+        Object avgSpeed = data.get("average_speed");
+        builder.averagePace(avgSpeed != null ? ((Number) avgSpeed).doubleValue() : 0.0);
 
         return builder.build();
     }

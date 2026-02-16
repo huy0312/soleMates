@@ -172,7 +172,7 @@ public class StravaService {
         }
     }
 
-    public JsonNode getAthleteStats() {
+    public Map<String, Object> getAthleteStats() {
         String email = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .getUsername();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
@@ -191,7 +191,9 @@ public class StravaService {
         try {
             ResponseEntity<String> response = restTemplate.exchange(statsUrl, org.springframework.http.HttpMethod.GET,
                     entity, String.class);
-            return objectMapper.readTree(response.getBody());
+            return objectMapper.readValue(response.getBody(),
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
+                    });
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch Strava stats: " + e.getMessage());
         }
@@ -236,7 +238,7 @@ public class StravaService {
         }
     }
 
-    public JsonNode getActivity(Long id) {
+    public Map<String, Object> getActivity(Long id) {
         String email = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .getUsername();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
@@ -256,7 +258,9 @@ public class StravaService {
             ResponseEntity<String> response = restTemplate.exchange(activityUrl,
                     org.springframework.http.HttpMethod.GET,
                     entity, String.class);
-            return objectMapper.readTree(response.getBody());
+            return objectMapper.readValue(response.getBody(),
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
+                    });
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch Strava activity details: " + e.getMessage());
         }

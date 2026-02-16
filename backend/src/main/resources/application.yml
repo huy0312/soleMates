@@ -32,3 +32,6 @@ spring:
 strava:
   client-id: ${STRAVA_CLIENT_ID:195277}
   client-secret: ${STRAVA_CLIENT_SECRET:f1725946bfb847ec0e3d67e6fce6d3535f47ceba}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:AIzaSyCc-w7wikj0i_vOCdDWwD0mPzbKEVh7xOs}

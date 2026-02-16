@@ -106,8 +106,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("startDate").descending());
 
-        org.springframework.data.jpa.domain.Specification<Challenge> spec = org.springframework.data.jpa.domain.Specification
-                .where((org.springframework.data.jpa.domain.Specification<Challenge>) null);
+        org.springframework.data.jpa.domain.Specification<Challenge> spec = (root, query, cb) -> cb.conjunction();
 
         if (org.springframework.util.StringUtils.hasText(search)) {
             spec = spec
@@ -115,13 +114,17 @@ public class ChallengeServiceImpl implements ChallengeService {
         }
 
         if (org.springframework.util.StringUtils.hasText(status)) {
+            System.out.println("Filtering by status: " + status);
             try {
                 ChallengeStatus challengeStatus = ChallengeStatus.valueOf(status.toUpperCase());
+                System.out.println("Parsed ChallengeStatus: " + challengeStatus);
                 spec = spec.and(com.solemates.backend.repository.specification.ChallengeSpecification
                         .hasStatus(challengeStatus));
             } catch (IllegalArgumentException e) {
-                // Ignore invalid status
+                System.out.println("Invalid status: " + status);
             }
+        } else {
+            System.out.println("No status filter provided");
         }
 
         org.springframework.data.domain.Page<Challenge> pageResult = challengeRepository.findAll(spec, pageable);

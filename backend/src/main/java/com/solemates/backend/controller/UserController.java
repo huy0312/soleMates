@@ -26,4 +26,31 @@ public class UserController {
             @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(userService.updateUserProfile(authentication.getName(), request));
     }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<UserDTO> getUserPublicProfile(@PathVariable String username) {
+        return ResponseEntity.ok(userService.getUserPublicProfile(username));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<java.util.List<UserDTO>> searchUsers(@RequestParam String q) {
+        return ResponseEntity.ok(userService.searchUsers(q));
+    }
+
+    @GetMapping("/profile/{token}")
+    public ResponseEntity<UserDTO> getUserProfileByToken(@PathVariable String token) {
+        return ResponseEntity.ok(userService.getUserByShareToken(token));
+    }
+
+    @PostMapping("/generate-token")
+    public ResponseEntity<UserDTO> generateToken(Authentication authentication) {
+        return ResponseEntity.ok(userService.generateShareToken(authentication.getName()));
+    }
+
+    @PutMapping("/share-token")
+    public ResponseEntity<UserDTO> updateShareToken(Authentication authentication,
+            @RequestBody java.util.Map<String, String> body) {
+        String newToken = body.get("token");
+        return ResponseEntity.ok(userService.updateShareToken(authentication.getName(), newToken));
+    }
 }
