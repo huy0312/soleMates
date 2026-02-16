@@ -10,6 +10,7 @@ import {
     Smile, MapPin, Users, Calendar, Trophy, ChevronRight, Search, Bell, Activity, X, Loader
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ChatBox from '../components/ChatBox';
 
 const ActivitySelectionModal = ({ isOpen, onClose, onSelect }) => {
     const [activities, setActivities] = useState([]);
@@ -350,6 +351,7 @@ const PostItem = ({ post, onLike, onAddComment }) => {
 const Forum = () => {
     const [posts, setPosts] = useState([]);
     const [friends, setFriends] = useState([]);
+    const [selectedFriend, setSelectedFriend] = useState(null);
     const [loading, setLoading] = useState(true);
     const [newPostContent, setNewPostContent] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -609,35 +611,42 @@ const Forum = () => {
                                 </div>
                             </div>
                             <ul className="space-y-1">
-                                <ul className="space-y-1">
-                                    {friends.length === 0 ? (
-                                        <li className="text-sm text-gray-500 p-2 text-center">Chưa có người liên hệ</li>
-                                    ) : (
-                                        friends.map((friend) => (
-                                            <Link to={friend.shareToken ? `/p/${friend.shareToken}` : '#'} key={friend.id} className="flex items-center gap-3 p-2 hover:bg-[#3A3B3C] rounded-lg cursor-pointer transition-colors">
-                                                <div className="relative">
-                                                    <div className="w-9 h-9 rounded-full bg-slate-700 overflow-hidden">
-                                                        {friend.avatarUrl ? (
-                                                            <img src={friend.avatarUrl} className="w-full h-full object-cover" alt={friend.fullName} />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-blue-500 to-cyan-500">
-                                                                {friend.fullName ? friend.fullName.charAt(0).toUpperCase() : 'U'}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#242526]"></div>
+                                {friends.length === 0 ? (
+                                    <li className="text-sm text-gray-500 p-2 text-center">Chưa có người liên hệ</li>
+                                ) : (
+                                    friends.map((friend) => (
+                                        <div // 3. Change Link to div and add onClick
+                                            key={friend.id}
+                                            onClick={() => setSelectedFriend(friend)}
+                                            className="flex items-center gap-3 p-2 hover:bg-[#3A3B3C] rounded-lg cursor-pointer transition-colors"
+                                        >
+                                            <div className="relative">
+                                                <div className="w-9 h-9 rounded-full bg-slate-700 overflow-hidden">
+                                                    {friend.avatarUrl ? (
+                                                        <img src={friend.avatarUrl} className="w-full h-full object-cover" alt={friend.fullName} />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-blue-500 to-cyan-500">
+                                                            {friend.fullName ? friend.fullName.charAt(0).toUpperCase() : 'U'}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <span className="text-sm font-medium text-white truncate max-w-[150px]">{friend.fullName || friend.username}</span>
-                                            </Link>
-                                        ))
-                                    )}
-                                </ul>
+                                                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#242526]"></div>
+                                            </div>
+                                            <span className="text-sm font-medium text-white truncate max-w-[150px]">{friend.fullName || friend.username}</span>
+                                        </div>
+                                    ))
+                                )}
                             </ul>
                         </div>
                     </div>
 
                 </div>
             </div>
+
+            {/* Chat Box */} {/* 4. Render ChatBox */}
+            {selectedFriend && (
+                <ChatBox friend={selectedFriend} onClose={() => setSelectedFriend(null)} />
+            )}
 
             {/* Activity Selection Modal */}
             <ActivitySelectionModal

@@ -18,6 +18,7 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [processingRequest, setProcessingRequest] = useState({});
+    const [stompClient, setStompClient] = useState(null);
     const { user, logout } = useAuth();
     const { cartItemCount } = useCart();
     const navigate = useNavigate();
@@ -64,21 +65,23 @@ const Navbar = () => {
 
     // WebSocket connection for real-time notifications
     useEffect(() => {
-        if (!user) return;
+        if (!user || !user.id) return;
 
-        // Determine WebSocket URL based on API URL or default
         const wsUrl = 'http://localhost:8080/ws';
         const socket = new SockJS(wsUrl);
-        const stompClient = Stomp.over(socket);
+        const client = Stomp.over(socket);
         // Disable debug logs
-        stompClient.debug = () => { };
+        client.debug = () => { };
 
-        stompClient.connect({}, () => {
-            stompClient.subscribe(`/topic/notifications/${user.id}`, (message) => {
+        client.connect({}, () => {
+            // Subscribe to notifications (Friend Requests / Accepts)
+            client.subscribe(`/topic/notifications/${user.id}`, (message) => {
                 const notification = JSON.parse(message.body);
 
                 if (notification.type === 'FRIEND_ACCEPT') {
-                    toast.success(`${notification.fullName || notification.username} đã đồng ý lời mời kết bạn của bạn`);
+                    toast.success(`${notification.fullName || notification.username} đã đồng ý lời mời kết bạn của bạn`, {
+                        id: `friend-accept-${notification.friendshipId}`
+                    });
                 } else {
                     // Default to FRIEND_REQUEST
                     // Check if already exists to avoid duplicates (though rare)
@@ -86,19 +89,36 @@ const Navbar = () => {
                         if (prev.some(req => req.friendshipId === notification.friendshipId)) return prev;
                         return [notification, ...prev];
                     });
-                    toast.success(`Bạn mới nhận được lời mời kết bạn từ ${notification.fullName || notification.username}`);
+                    toast.success(`Bạn mới nhận được lời mời kết bạn từ ${notification.fullName || notification.username}`, {
+                        id: `friend-req-${notification.friendshipId}`
+                    });
                 }
             });
+
+            // Subscribe to Chat Messages for notifications
+            client.subscribe(`/topic/messages/${user.id}`, (message) => {
+                const msg = JSON.parse(message.body);
+                // Show toast if we are not currently in that chat?
+                // Hard to know if chat is open here without global state.
+                // Just show a small toast for now.
+                toast(`Tin nhắn mới từ ${msg.senderName || 'bạn bè'}`, {
+                    icon: '💬',
+                    duration: 3000,
+                    id: `chat-${msg.id}` // Deduplicate by message ID
+                });
+            });
+
+            setStompClient(client);
         }, (error) => {
             console.error('WebSocket connection error:', error);
         });
 
         return () => {
-            if (stompClient && stompClient.connected) {
-                stompClient.disconnect();
+            if (client && client.connected) {
+                client.disconnect();
             }
         };
-    }, [user]);
+    }, [user]); // Removed stompClient from dependency array as we use local 'client' for cleanup
 
     const handleAcceptRequest = async (friendshipId) => {
         setProcessingRequest(prev => ({ ...prev, [friendshipId]: 'accepting' }));
