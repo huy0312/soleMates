@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Award, Calendar, MapPin, ArrowLeft, Users, UserPlus, UserCheck, Clock, UserX } from 'lucide-react';
+import { User, Award, Calendar, MapPin, ArrowLeft, Users, UserPlus, UserCheck, Clock, UserX, Loader2, X, Check } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import ActivityCalendar from '../components/ActivityCalendar';
+import toast from 'react-hot-toast';
 
 const PublicProfile = () => {
     const { token } = useParams();
@@ -16,7 +17,9 @@ const PublicProfile = () => {
     const [activities, setActivities] = useState([]);
 
     // Friendship state
-    const [friendshipStatus, setFriendshipStatus] = useState(null); // null, PENDING, ACCEPTED, DECLINED
+    const [friendshipStatus, setFriendshipStatus] = useState(null);
+    const [friendshipId, setFriendshipId] = useState(null);
+    const [friendDirection, setFriendDirection] = useState(null);
     const [friendshipLoading, setFriendshipLoading] = useState(false);
     const [isSelf, setIsSelf] = useState(false);
 
@@ -33,9 +36,14 @@ const PublicProfile = () => {
                     // Fetch friendship status
                     try {
                         const statusRes = await api.get(`/friends/status/${res.data.id}`);
-                        setFriendshipStatus(statusRes.data);
+                        if (statusRes.data) {
+                            setFriendshipStatus(statusRes.data.status);
+                            setFriendshipId(statusRes.data.friendshipId);
+                            setFriendDirection(statusRes.data.direction);
+                        } else {
+                            setFriendshipStatus(null);
+                        }
                     } catch (err) {
-                        // No friendship exists or error
                         setFriendshipStatus(null);
                     }
                 }
@@ -69,6 +77,50 @@ const PublicProfile = () => {
         }
     };
 
+    const handleCancelRequest = async () => {
+        if (!friendshipId) return;
+        setFriendshipLoading(true);
+        try {
+            await api.delete(`/friends/${friendshipId}/cancel`);
+            setFriendshipStatus(null);
+            setFriendshipId(null);
+            toast.success('Đã huỷ lời mời kết bạn');
+        } catch (err) {
+            toast.error('Không thể huỷ lời mời');
+        } finally {
+            setFriendshipLoading(false);
+        }
+    };
+
+    const handleAcceptRequest = async () => {
+        if (!friendshipId) return;
+        setFriendshipLoading(true);
+        try {
+            await api.put(`/friends/${friendshipId}/accept`);
+            setFriendshipStatus('ACCEPTED');
+            toast.success('Đã chấp nhận lời mời kết bạn!');
+        } catch (err) {
+            toast.error('Có lỗi xảy ra');
+        } finally {
+            setFriendshipLoading(false);
+        }
+    };
+
+    const handleDeclineRequest = async () => {
+        if (!friendshipId) return;
+        setFriendshipLoading(true);
+        try {
+            await api.put(`/friends/${friendshipId}/decline`);
+            setFriendshipStatus('DECLINED');
+            setFriendshipId(null);
+            toast.success('Đã từ chối lời mời');
+        } catch (err) {
+            toast.error('Có lỗi xảy ra');
+        } finally {
+            setFriendshipLoading(false);
+        }
+    };
+
     const renderFriendButton = () => {
         if (isSelf || !currentUser) return null;
 
@@ -82,12 +134,44 @@ const PublicProfile = () => {
         }
 
         if (friendshipStatus === 'PENDING') {
-            return (
-                <div className="flex items-center gap-2 px-5 py-2.5 bg-amber-600/20 border border-amber-500/30 text-amber-400 rounded-xl font-medium">
-                    <Clock size={18} />
-                    Đã gửi lời mời
-                </div>
-            );
+            if (friendDirection === 'SENT') {
+                return (
+                    <button
+                        onClick={handleCancelRequest}
+                        disabled={friendshipLoading}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-amber-600/20 border border-amber-500/30 text-amber-400 hover:bg-red-600/20 hover:border-red-500/30 hover:text-red-400 rounded-xl font-medium transition-all duration-200 disabled:opacity-50"
+                    >
+                        {friendshipLoading ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <X size={18} />
+                        )}
+                        Huỷ lời mời
+                    </button>
+                );
+            } else {
+                // RECEIVED
+                return (
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleAcceptRequest}
+                            disabled={friendshipLoading}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-green-500/20 disabled:opacity-50"
+                        >
+                            {friendshipLoading ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                            Chấp nhận
+                        </button>
+                        <button
+                            onClick={handleDeclineRequest}
+                            disabled={friendshipLoading}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-gray-300 rounded-xl font-medium transition-all disabled:opacity-50"
+                        >
+                            {friendshipLoading ? <Loader2 size={18} className="animate-spin" /> : <X size={18} />}
+                            Từ chối
+                        </button>
+                    </div>
+                );
+            }
         }
 
         return (

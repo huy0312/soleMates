@@ -1,18 +1,23 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, LogOut, User, ChevronDown, Pentagon, Smartphone, HelpCircle, LayoutDashboard, Bell, ShoppingCart } from 'lucide-react';
+import { Menu, X, LogOut, User, ChevronDown, Pentagon, Smartphone, HelpCircle, LayoutDashboard, Bell, ShoppingCart, Check, UserPlus, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import toast from 'react-hot-toast';
+import api from '../api/axios';
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [pendingRequests, setPendingRequests] = useState([]);
+    const [processingRequest, setProcessingRequest] = useState({});
     const { user, logout } = useAuth();
     const { cartItemCount } = useCart();
     const navigate = useNavigate();
@@ -42,6 +47,84 @@ const Navbar = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    // Initial fetch of pending requests
+    useEffect(() => {
+        const fetchPending = async () => {
+            if (!user) return;
+            try {
+                const res = await api.get('/friends/pending');
+                setPendingRequests(res.data);
+            } catch (err) {
+                // silently fail
+            }
+        };
+        fetchPending();
+    }, [user]);
+
+    // WebSocket connection for real-time notifications
+    useEffect(() => {
+        if (!user) return;
+
+        // Determine WebSocket URL based on API URL or default
+        const wsUrl = 'http://localhost:8080/ws';
+        const socket = new SockJS(wsUrl);
+        const stompClient = Stomp.over(socket);
+        // Disable debug logs
+        stompClient.debug = () => { };
+
+        stompClient.connect({}, () => {
+            stompClient.subscribe(`/topic/notifications/${user.id}`, (message) => {
+                const notification = JSON.parse(message.body);
+
+                if (notification.type === 'FRIEND_ACCEPT') {
+                    toast.success(`${notification.fullName || notification.username} đã đồng ý lời mời kết bạn của bạn`);
+                } else {
+                    // Default to FRIEND_REQUEST
+                    // Check if already exists to avoid duplicates (though rare)
+                    setPendingRequests(prev => {
+                        if (prev.some(req => req.friendshipId === notification.friendshipId)) return prev;
+                        return [notification, ...prev];
+                    });
+                    toast.success(`Bạn mới nhận được lời mời kết bạn từ ${notification.fullName || notification.username}`);
+                }
+            });
+        }, (error) => {
+            console.error('WebSocket connection error:', error);
+        });
+
+        return () => {
+            if (stompClient && stompClient.connected) {
+                stompClient.disconnect();
+            }
+        };
+    }, [user]);
+
+    const handleAcceptRequest = async (friendshipId) => {
+        setProcessingRequest(prev => ({ ...prev, [friendshipId]: 'accepting' }));
+        try {
+            await api.put(`/friends/${friendshipId}/accept`);
+            setPendingRequests(prev => prev.filter(r => r.friendshipId !== friendshipId));
+            toast.success('Đã chấp nhận lời mời kết bạn!');
+        } catch (err) {
+            toast.error('Có lỗi xảy ra');
+        } finally {
+            setProcessingRequest(prev => ({ ...prev, [friendshipId]: null }));
+        }
+    };
+
+    const handleDeclineRequest = async (friendshipId) => {
+        setProcessingRequest(prev => ({ ...prev, [friendshipId]: 'declining' }));
+        try {
+            await api.put(`/friends/${friendshipId}/decline`);
+            setPendingRequests(prev => prev.filter(r => r.friendshipId !== friendshipId));
+            toast.success('Đã từ chối lời mời');
+        } catch (err) {
+            toast.error('Có lỗi xảy ra');
+        } finally {
+            setProcessingRequest(prev => ({ ...prev, [friendshipId]: null }));
+        }
+    };
 
     const handleLoginClick = () => {
         navigate('/login');
@@ -93,7 +176,11 @@ const Navbar = () => {
                                             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                                             className={`relative p-2 rounded-full transition-colors focus:outline-none ${scrolled ? 'text-slate-600 hover:bg-slate-100' : 'text-white/90 hover:bg-white/10'}`}
                                         >
-                                            <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+                                            {pendingRequests.length > 0 && (
+                                                <div className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-bold flex items-center justify-center text-white border border-white">
+                                                    {pendingRequests.length}
+                                                </div>
+                                            )}
                                             <Bell size={20} />
                                         </button>
 
@@ -104,16 +191,72 @@ const Navbar = () => {
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                                     transition={{ duration: 0.2 }}
-                                                    className="absolute right-0 mt-2 w-80 bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-100 max-h-96 overflow-y-auto"
+                                                    className="absolute right-0 mt-2 w-80 bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-100 max-h-96 overflow-y-auto z-50"
                                                 >
                                                     <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                                                         <h4 className="font-bold text-slate-900 text-sm">Thông Báo</h4>
-                                                        <span className="text-xs text-slate-500 cursor-pointer hover:text-orange-500">Đánh dấu đã đọc</span>
+                                                        {pendingRequests.length > 0 && (
+                                                            <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                                                                {pendingRequests.length} mới
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                    <div className="p-8 text-center text-slate-400 text-sm">
-                                                        <Bell size={32} className="mx-auto mb-2 opacity-50" />
-                                                        <p>Bạn chưa có thông báo mới nào.</p>
-                                                    </div>
+
+                                                    {pendingRequests.length > 0 ? (
+                                                        <div className="divide-y divide-slate-100">
+                                                            {pendingRequests.map((req) => (
+                                                                <div key={req.friendshipId} className="p-3 hover:bg-slate-50 transition-colors">
+                                                                    <div className="flex items-start gap-3">
+                                                                        <div
+                                                                            onClick={() => { req.shareToken && navigate(`/p/${req.shareToken}`); setIsNotificationOpen(false); }}
+                                                                            className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0 cursor-pointer"
+                                                                        >
+                                                                            {req.avatarUrl ? (
+                                                                                <img src={req.avatarUrl} alt="" className="w-full h-full object-cover" />
+                                                                            ) : (
+                                                                                <div className="w-full h-full flex items-center justify-center">
+                                                                                    <User size={16} className="text-slate-400" />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-sm text-slate-700">
+                                                                                <span className="font-semibold text-slate-900">{req.fullName || req.username}</span>
+                                                                                {' '}đã gửi lời mời kết bạn
+                                                                            </p>
+                                                                            <div className="flex items-center gap-2 mt-2">
+                                                                                <button
+                                                                                    onClick={() => handleAcceptRequest(req.friendshipId)}
+                                                                                    disabled={!!processingRequest[req.friendshipId]}
+                                                                                    className="flex items-center gap-1 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                                                                                >
+                                                                                    {processingRequest[req.friendshipId] === 'accepting'
+                                                                                        ? <Loader2 size={12} className="animate-spin" />
+                                                                                        : <Check size={12} />}
+                                                                                    Chấp nhận
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeclineRequest(req.friendshipId)}
+                                                                                    disabled={!!processingRequest[req.friendshipId]}
+                                                                                    className="flex items-center gap-1 px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                                                                                >
+                                                                                    {processingRequest[req.friendshipId] === 'declining'
+                                                                                        ? <Loader2 size={12} className="animate-spin" />
+                                                                                        : <X size={12} />}
+                                                                                    Từ chối
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="p-8 text-center text-slate-400 text-sm">
+                                                            <Bell size={32} className="mx-auto mb-2 opacity-50" />
+                                                            <p>Bạn chưa có thông báo mới nào.</p>
+                                                        </div>
+                                                    )}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
@@ -255,54 +398,56 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Menu */}
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="md:hidden bg-white border-t border-slate-100 shadow-xl"
-                >
-                    <div className="px-4 pt-4 pb-8 space-y-4 flex flex-col items-center">
-                        <Link to="/" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Trang Chủ</Link>
-                        <Link to="/challenges" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giải Đấu</Link>
-                        {user && <Link to="/forum" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Diễn đàn</Link>}
-                        <a href="/#about" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giới Thiệu</a>
-                        <a href="/#features" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Tính Năng</a>
+            {
+                isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="md:hidden bg-white border-t border-slate-100 shadow-xl"
+                    >
+                        <div className="px-4 pt-4 pb-8 space-y-4 flex flex-col items-center">
+                            <Link to="/" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Trang Chủ</Link>
+                            <Link to="/challenges" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giải Đấu</Link>
+                            {user && <Link to="/forum" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Diễn đàn</Link>}
+                            <a href="/#about" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giới Thiệu</a>
+                            <a href="/#features" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Tính Năng</a>
 
-                        {user ? (
-                            <div className="w-full flex flex-col items-center gap-4 pt-4 border-t border-slate-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
-                                        {user.avatarUrl ? (
-                                            <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User size={20} className="text-slate-400" />
-                                        )}
+                            {user ? (
+                                <div className="w-full flex flex-col items-center gap-4 pt-4 border-t border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
+                                            {user.avatarUrl ? (
+                                                <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <User size={20} className="text-slate-400" />
+                                            )}
+                                        </div>
+                                        <span className="text-slate-900 font-bold">
+                                            {user.fullName || user.email?.split('@')[0]}
+                                        </span>
                                     </div>
-                                    <span className="text-slate-900 font-bold">
-                                        {user.fullName || user.email?.split('@')[0]}
-                                    </span>
-                                </div>
 
-                                <Link to={user.shareToken ? `/p/${user.shareToken}` : "/profile"} onClick={() => setIsOpen(false)} className="text-slate-600 hover:text-orange-500 transition-colors">Hồ Sơ Cá Nhân</Link>
+                                    <Link to={user.shareToken ? `/p/${user.shareToken}` : "/profile"} onClick={() => setIsOpen(false)} className="text-slate-600 hover:text-orange-500 transition-colors">Hồ Sơ Cá Nhân</Link>
+                                    <button
+                                        onClick={() => { handleLogoutClick(); setIsOpen(false); }}
+                                        className="w-full bg-red-50 text-red-500 px-6 py-3 rounded-full font-medium hover:bg-red-100 transition-colors"
+                                    >
+                                        Đăng Xuất
+                                    </button>
+                                </div>
+                            ) : (
                                 <button
-                                    onClick={() => { handleLogoutClick(); setIsOpen(false); }}
-                                    className="w-full bg-red-50 text-red-500 px-6 py-3 rounded-full font-medium hover:bg-red-100 transition-colors"
+                                    onClick={() => { handleLoginClick(); setIsOpen(false); }}
+                                    className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-orange-500/20"
                                 >
-                                    Đăng Xuất
+                                    Tham Gia
                                 </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => { handleLoginClick(); setIsOpen(false); }}
-                                className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-orange-500/20"
-                            >
-                                Tham Gia
-                            </button>
-                        )}
-                    </div>
-                </motion.div>
-            )}
-        </motion.nav>
+                            )}
+                        </div>
+                    </motion.div>
+                )
+            }
+        </motion.nav >
     );
 };
 

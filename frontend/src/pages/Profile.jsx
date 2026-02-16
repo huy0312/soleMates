@@ -13,6 +13,7 @@ import api from '../api/axios';
 import ActivityCalendar from '../components/ActivityCalendar';
 import ActivityMap from '../components/ActivityMap';
 import RunDetailModal from '../components/RunDetailModal';
+import FriendsTab from '../components/FriendsTab';
 
 
 const Profile = () => {
@@ -747,61 +748,7 @@ const Profile = () => {
                         )}
 
                         {activeTab === 'friends' && (
-                            <div className="space-y-6">
-                                {/* Search Section */}
-                                <div className="glass rounded-2xl p-6">
-                                    <h3 className="text-lg font-bold text-white mb-4">Tìm kiếm bạn bè</h3>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            placeholder="Nhập tên, mã giới thiệu hoặc email..."
-                                            className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white pl-12"
-                                            onKeyDown={async (e) => {
-                                                if (e.key === 'Enter') {
-                                                    const val = e.target.value;
-                                                    if (!val) return;
-                                                    try {
-                                                        const res = await api.get(`/users/search?q=${val}`);
-                                                        const event = new CustomEvent('search-friends', { detail: res.data });
-                                                        window.dispatchEvent(event);
-                                                    } catch (err) {
-                                                        console.error(err);
-                                                    }
-                                                }
-                                            }}
-                                            onChange={(e) => {
-                                                // Debounce search could go here
-                                            }}
-                                            id="friend-search-input"
-                                        />
-                                        <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                                        <button
-                                            onClick={() => {
-                                                const input = document.getElementById('friend-search-input');
-                                                const val = input.value;
-                                                if (val) {
-                                                    api.get(`/users/search?q=${val}`).then(res => {
-                                                        const event = new CustomEvent('search-friends', { detail: res.data });
-                                                        window.dispatchEvent(event);
-                                                    });
-                                                }
-                                            }}
-                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                                        >
-                                            Tìm
-                                        </button>
-                                    </div>
-
-                                    {/* Search Results Area */}
-                                    {/* <AuthorSearchResult /> */}
-                                </div>
-
-                                <div className="glass rounded-2xl p-12 text-center text-gray-400">
-                                    <Users size={48} className="mx-auto mb-4 opacity-50" />
-                                    <h3 className="text-xl font-medium text-white mb-2">Danh sách bạn bè</h3>
-                                    <p>Chức năng kết bạn đang được phát triển.</p>
-                                </div>
-                            </div>
+                            <FriendsTab currentUser={currentUser} viewedUser={viewedUser} isOwner={isOwner} />
                         )}
 
                         {activeTab === 'orders' && isOwner && (

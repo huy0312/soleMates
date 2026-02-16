@@ -12,5 +12,13 @@ public interface FriendshipService {
 
     FriendshipStatus getFriendshipStatus(String requesterEmail, Long targetUserId);
 
+    java.util.Map<String, Object> getFriendshipStatusDetail(String requesterEmail, Long targetUserId);
+
+    void cancelRequest(Long friendshipId, String userEmail);
+
     Friendship getFriendship(Long friendshipId);
+
+    java.util.List<java.util.Map<String, Object>> getAcceptedFriends(String userEmail);
+
+    java.util.List<java.util.Map<String, Object>> getPendingRequests(String userEmail);
 }
