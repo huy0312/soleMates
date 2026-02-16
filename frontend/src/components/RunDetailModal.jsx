@@ -207,8 +207,8 @@ const RunDetailModal = ({ activityId, onClose }) => {
                                                     <Brain size={20} className="text-white" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-bold text-white text-lg">Phân tích AI</h3>
-                                                    <p className="text-xs text-gray-400">Powered by Google Gemini</p>
+                                                    <h3 className="font-bold text-white text-lg">Solemates AI</h3>
+                                                    <p className="text-xs text-gray-400">Phân tích thông minh cho vận động viên</p>
                                                 </div>
                                             </div>
                                             {!aiAnalysis && !analyzing && (
