@@ -104,7 +104,7 @@ const AdminChallengeList = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Quản Lý Thử Thách</h1>
-                    <p className="text-gray-400 text-sm mt-1">Danh sách tất cả các giải đấu và sự kiện</p>
+                    <p className="text-gray-400 text-sm mt-1">Danh sách tất cả các thử thách và sự kiện</p>
                 </div>
                 <Link
                     to="/admin/challenges/create"

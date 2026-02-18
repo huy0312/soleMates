@@ -116,7 +116,7 @@ const ChallengeDetail = () => {
             <div className="text-gray-400 text-sm mb-8">
                 <span className="hover:text-white cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span>
                 <span className="mx-2">›</span>
-                <span className="hover:text-white cursor-pointer">Giải đấu</span>
+                <span className="hover:text-white cursor-pointer">Thử thách</span>
                 <span className="mx-2">›</span>
                 <span className="text-white">{challenge.title}</span>
             </div>

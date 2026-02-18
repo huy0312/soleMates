@@ -38,7 +38,7 @@ const Footer = () => {
                         <ul className="space-y-4">
                             {[
                                 { label: 'Về Chúng Tôi', path: '/#about' },
-                                { label: 'Giải Đấu', path: '/challenges' },
+                                { label: 'Thử Thách', path: '/challenges' },
                                 { label: 'Bảng Xếp Hạng', path: '/leaderboard' },
                                 { label: 'Tin Tức & Sự Kiện', path: '/news' },
                                 { label: 'Cửa Hàng', path: '/shop' }

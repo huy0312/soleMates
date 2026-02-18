@@ -236,8 +236,8 @@ const Navbar = () => {
 
                         {/* Desktop Menu */}
                         <div className="hidden md:flex items-center space-x-8">
-                            <Link to="/challenges" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Giải Đấu</Link>
-                            {user && <Link to="/forum" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Diễn đàn</Link>}
+                            <Link to="/challenges" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Thử thách</Link>
+                            {user && <Link to="/forum" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Xã hội</Link>}
                             <a href="/#about" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Giới Thiệu</a>
                             <a href="/#features" className={`font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-orange-500' : 'text-white/90 hover:text-white'}`}>Tính Năng</a>
 
@@ -634,7 +634,7 @@ const Navbar = () => {
                         >
                             <div className="px-4 pt-4 pb-8 space-y-4 flex flex-col items-center">
                                 <Link to="/" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Trang Chủ</Link>
-                                <Link to="/challenges" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giải Đấu</Link>
+                                <Link to="/challenges" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Thử Thách</Link>
                                 {user && <Link to="/forum" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Diễn đàn</Link>}
                                 <a href="/#about" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Giới Thiệu</a>
                                 <a href="/#features" className="text-slate-600 hover:text-orange-500 text-lg font-medium" onClick={() => setIsOpen(false)}>Tính Năng</a>

@@ -55,7 +55,7 @@ const ChallengeList = ({ limit }) => {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="mb-12 text-center">
-                <h2 className="text-4xl font-bold text-white mb-4">Các Giải Đấu Nổi Bật</h2>
+                <h2 className="text-4xl font-bold text-white mb-4">Các Thử Thách Nổi Bật</h2>
                 <p className="text-slate-400 max-w-2xl mx-auto">
                     Khám phá và tham gia các thử thách chạy bộ hấp dẫn. Vượt qua giới hạn bản thân và nhận những phần quà giá trị.
                 </p>

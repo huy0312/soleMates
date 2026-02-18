@@ -12,7 +12,7 @@ const Challenges = () => {
                     viewport={{ once: true }}
                     className="text-cyan-400 font-semibold tracking-wider uppercase"
                 >
-                    Sự Kiện & Giải Đấu
+                    Các thử thách nổi bật
                 </motion.span>
                 <motion.h1
                     initial={{ opacity: 0, y: 20 }}

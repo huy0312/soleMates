@@ -452,7 +452,7 @@ const Forum = () => {
                         </Link>
                         <Link to="/challenges" className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#3A3B3C] transition-colors">
                             <Trophy className="text-yellow-500" size={24} />
-                            <span className="font-medium">Giải đấu</span>
+                            <span className="font-medium">Thử thách</span>
                         </Link>
                         <Link to="/friends" className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#3A3B3C] transition-colors">
                             <Users className="text-cyan-400" size={24} />
