@@ -461,28 +461,7 @@ const Forum = () => {
                     {/* MIDDLE FEED (Main Content) */}
                     <div className="lg:col-span-2 space-y-6">
 
-                        {/* Story Reel (Placeholder) */}
-                        <div className="grid grid-cols-4 gap-2 h-48 mb-6">
-                            <div className="bg-[#242526] rounded-xl overflow-hidden relative group cursor-pointer border border-white/5">
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-                                <div className="absolute bottom-0 inset-x-0 p-2 pt-8 bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="w-8 h-8 rounded-full bg-cyan-600 border-4 border-[#242526] flex items-center justify-center absolute -top-4 left-2 text-white font-bold">
-                                        +
-                                    </div>
-                                    <p className="text-white text-xs font-semibold mt-2">Tạo tin</p>
-                                </div>
-                                {user?.avatarUrl && <img src={user.avatarUrl} className="w-full h-full object-cover" alt="My Story" />}
-                            </div>
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="bg-[#242526] rounded-xl overflow-hidden relative cursor-pointer border border-white/5">
-                                    <img src={`https://picsum.photos/200/300?random=${i}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Story" />
-                                    <div className="absolute top-2 left-2 w-8 h-8 rounded-full border-4 border-cyan-500 overflow-hidden">
-                                        <img src={`https://i.pravatar.cc/100?img=${i + 10}`} className="w-full h-full object-cover" alt="User" />
-                                    </div>
-                                    <p className="absolute bottom-2 left-2 text-white text-xs font-bold drop-shadow-md">Người dùng {i}</p>
-                                </div>
-                            ))}
-                        </div>
+
 
                         {/* Create Post Widget */}
                         <div className="bg-[#242526] rounded-xl p-4 border border-white/5 shadow-lg">

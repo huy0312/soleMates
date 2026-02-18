@@ -98,6 +98,10 @@ const Navbar = () => {
             // Subscribe to Chat Messages for notifications
             client.subscribe(`/topic/messages/${user.id}`, (message) => {
                 const msg = JSON.parse(message.body);
+
+                // Ignore Read Receipts and own messages
+                if (msg.type === 'READ_RECEIPT' || msg.senderId === user.id) return;
+
                 // Show toast if we are not currently in that chat?
                 // Hard to know if chat is open here without global state.
                 // Just show a small toast for now.

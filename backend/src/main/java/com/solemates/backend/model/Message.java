@@ -2,6 +2,7 @@ package com.solemates.backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -28,5 +29,6 @@ public class Message extends BaseEntity {
     private String content;
 
     @Builder.Default
+    @JsonProperty("isRead")
     private boolean isRead = false;
 }

@@ -26,6 +26,7 @@ const ChatBox = ({ friend, onClose }) => {
     const [showGif, setShowGif] = useState(false);
     const messagesEndRef = useRef(null);
     const stompClientRef = useRef(null);
+    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
         if (user && friend) {
@@ -43,8 +44,14 @@ const ChatBox = ({ friend, onClose }) => {
     useEffect(() => {
         if (!isMinimized) {
             scrollToBottom();
+            if (messages.length > 0 && isConnected) {
+                const lastMsg = messages[messages.length - 1];
+                if (lastMsg.senderId === friend.id && !lastMsg.isRead) {
+                    markAsRead();
+                }
+            }
         }
-    }, [messages, isMinimized]);
+    }, [messages, isMinimized, isConnected]);
 
     const fetchHistory = async () => {
         try {
@@ -87,8 +94,10 @@ const ChatBox = ({ friend, onClose }) => {
                 }
             });
             stompClientRef.current = client;
+            setIsConnected(true);
         }, (error) => {
             console.error("Chat WebSocket error", error);
+            setIsConnected(false);
         });
     };
 
@@ -98,6 +107,9 @@ const ChatBox = ({ friend, onClose }) => {
                 senderId: friend.id,
                 receiverId: user.id
             }));
+            setMessages(prev => prev.map(msg =>
+                msg.senderId === friend.id && !msg.isRead ? { ...msg, isRead: true } : msg
+            ));
         }
     };
 
@@ -227,8 +239,9 @@ const ChatBox = ({ friend, onClose }) => {
                         const isMe = msg.senderId === user.id;
                         const showAvatar = !isMe && (idx === 0 || messages[idx - 1].senderId !== msg.senderId);
                         const isImg = isImageUrl(msg.content);
-                        // Show "Seen" only for the last read message sent by me
-                        const isLastRead = idx === messages.map(m => m.isRead && m.senderId === user.id).lastIndexOf(true);
+                        // Show "Seen" (like Messenger) - only on my messages that friend read
+                        const lastReadMeIdx = messages.map(m => m.isRead && m.senderId === user.id).lastIndexOf(true);
+                        const isLastRead = isMe && idx === lastReadMeIdx;
 
                         return (
                             <div key={idx} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} group gap-1`}>
@@ -268,7 +281,17 @@ const ChatBox = ({ friend, onClose }) => {
                                     </div>
                                 </div>
                                 {isLastRead && (
-                                    <span className="text-[10px] text-gray-400 mr-2">Đã xem</span>
+                                    <div className="flex justify-end mt-1 mr-1">
+                                        <div className="w-4 h-4 rounded-full overflow-hidden border border-[#242526] shadow-sm" title={`Đã xem lúc ${format(new Date(), 'HH:mm')}`}>
+                                            {friend.avatarUrl ? (
+                                                <img src={friend.avatarUrl} alt="Seen" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full bg-slate-500 flex items-center justify-center text-[8px] text-white font-bold">
+                                                    {friend.fullName ? friend.fullName.charAt(0).toUpperCase() : 'U'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         );
