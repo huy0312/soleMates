@@ -122,4 +122,53 @@ public class ChatController {
 
                 messagingTemplate.convertAndSend("/topic/messages/" + senderId, (Object) receipt);
         }
+
+        @GetMapping("/api/messages/unread-count")
+        @ResponseBody
+        public ResponseEntity<Map<String, Long>> getUnreadCount(@AuthenticationPrincipal UserDetails userDetails) {
+                User currentUser = userRepository.findByEmail(userDetails.getUsername())
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                long count = messageRepository.countByReceiverAndIsReadFalse(currentUser);
+
+                Map<String, Long> response = new HashMap<>();
+                response.put("count", count);
+
+                return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/api/messages/conversations")
+        @ResponseBody
+        public ResponseEntity<List<Map<String, Object>>> getRecentConversations(
+                        @AuthenticationPrincipal UserDetails userDetails) {
+                User currentUser = userRepository.findByEmail(userDetails.getUsername())
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                List<Message> recentMessages = messageRepository.findRecentConversations(currentUser.getUserId());
+
+                List<Map<String, Object>> conversations = recentMessages.stream().map(msg -> {
+                        Map<String, Object> map = new HashMap<>();
+                        User otherUser = msg.getSender().getUserId().equals(currentUser.getUserId()) ? msg.getReceiver()
+                                        : msg.getSender();
+
+                        map.put("partnerId", otherUser.getUserId());
+                        map.put("partnerName",
+                                        otherUser.getMemberProfile() != null
+                                                        ? otherUser.getMemberProfile().getFullName()
+                                                        : otherUser.getUsername());
+                        map.put("partnerAvatar",
+                                        otherUser.getMemberProfile() != null
+                                                        ? otherUser.getMemberProfile().getAvatarUrl()
+                                                        : null);
+                        map.put("lastMessage", msg.getContent());
+                        map.put("lastMessageId", msg.getId());
+                        map.put("createdAt", msg.getCreatedAt());
+                        map.put("isRead", msg.isRead());
+                        map.put("amISender", msg.getSender().getUserId().equals(currentUser.getUserId()));
+
+                        return map;
+                }).collect(Collectors.toList());
+
+                return ResponseEntity.ok(conversations);
+        }
 }

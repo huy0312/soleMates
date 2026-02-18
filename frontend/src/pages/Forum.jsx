@@ -12,6 +12,11 @@ import {
 import { Link } from 'react-router-dom';
 import ChatBox from '../components/ChatBox';
 
+
+
+
+
+
 const ActivitySelectionModal = ({ isOpen, onClose, onSelect }) => {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -357,7 +362,9 @@ const Forum = () => {
     const [submitting, setSubmitting] = useState(false);
     const [showActivityModal, setShowActivityModal] = useState(false);
     const [selectedActivity, setSelectedActivity] = useState(null);
+
     const { user } = useAuth();
+
 
     const fetchPosts = async () => {
         try {
@@ -388,6 +395,13 @@ const Forum = () => {
     useEffect(() => {
         fetchFriends();
     }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            fetchFriends();
+        }
+    }, [user]);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -624,7 +638,11 @@ const Forum = () => {
 
             {/* Chat Box */} {/* 4. Render ChatBox */}
             {selectedFriend && (
-                <ChatBox friend={selectedFriend} onClose={() => setSelectedFriend(null)} />
+                <ChatBox
+                    friend={selectedFriend}
+                    onClose={() => setSelectedFriend(null)}
+
+                />
             )}
 
             {/* Activity Selection Modal */}
@@ -636,6 +654,7 @@ const Forum = () => {
                     setShowActivityModal(false);
                 }}
             />
+
         </div>
     );
 };

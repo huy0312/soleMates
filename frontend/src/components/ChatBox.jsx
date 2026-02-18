@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Loader, Minus, Smile, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import chatApi from '../api/chatApi';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import { format } from 'date-fns';
@@ -16,7 +17,12 @@ const GIFS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExN2l4bmVqZnN4amh1N2l4bmVqZnN4amh1N2l4bmVqZnN4amh1/3oEjI6SIIHBdRxXI40/giphy.gif"
 ];
 
-const ChatBox = ({ friend, onClose }) => {
+const ChatBox = ({ friend, onClose, onMessageRead }) => {
+    // ... existing state ...
+
+    // ... existing effects ...
+
+
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -24,6 +30,9 @@ const ChatBox = ({ friend, onClose }) => {
     const [isMinimized, setIsMinimized] = useState(false);
     const [showEmoji, setShowEmoji] = useState(false);
     const [showGif, setShowGif] = useState(false);
+    const [reactions, setReactions] = useState({}); // { messageId: { emoji, userId } }
+    const [hoveredMsg, setHoveredMsg] = useState(null);
+    const hoverTimeoutRef = useRef(null);
     const messagesEndRef = useRef(null);
     const stompClientRef = useRef(null);
     const [isConnected, setIsConnected] = useState(false);
@@ -56,12 +65,43 @@ const ChatBox = ({ friend, onClose }) => {
     const fetchHistory = async () => {
         try {
             const res = await api.get(`/messages/${friend.id}`);
-            setMessages(res.data);
+            const msgs = res.data;
+            setMessages(msgs);
+            // Fetch reactions for all messages in batch
+            if (msgs.length > 0) {
+                const ids = msgs.map(m => m.id).filter(Boolean);
+                if (ids.length > 0) {
+                    const rxRes = await chatApi.getReactionsBatch(ids);
+                    // rxRes.data: { messageId: [{emoji, userId}] }
+                    const rxMap = {};
+                    Object.entries(rxRes.data).forEach(([msgId, rxList]) => {
+                        rxList.forEach(rx => { rxMap[msgId] = rx; }); // last one wins per message
+                    });
+                    setReactions(rxMap);
+                }
+            }
         } catch (error) {
             console.error("Failed to fetch chat history", error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const playNotificationSound = () => {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.3);
+        } catch (e) { /* ignore */ }
     };
 
     const connectWebSocket = () => {
@@ -80,19 +120,31 @@ const ChatBox = ({ friend, onClose }) => {
                             msg.senderId === user.id ? { ...msg, isRead: true } : msg
                         ));
                     }
-                } else if (receivedMsg.senderId === friend.id || receivedMsg.receiverId === friend.id) {
+                } else if (receivedMsg.senderId === friend.id) {
                     setMessages(prev => {
-                        // Prevent duplicates
                         if (prev.some(m => m.id === receivedMsg.id)) return prev;
                         return [...prev, receivedMsg];
                     });
-
-                    // If message is from friend, mark as read immediately if chat is open
-                    if (receivedMsg.senderId === friend.id) {
-                        markAsRead();
-                    }
+                    playNotificationSound();
+                    markAsRead();
                 }
             });
+
+            // Subscribe to reaction updates
+            client.subscribe(`/topic/reactions/${user.id}`, (message) => {
+                const rx = JSON.parse(message.body);
+                const msgId = String(rx.messageId);
+                setReactions(prev => {
+                    const updated = { ...prev };
+                    if (rx.action === 'removed') {
+                        delete updated[msgId];
+                    } else {
+                        updated[msgId] = { emoji: rx.emoji, userId: rx.userId };
+                    }
+                    return updated;
+                });
+            });
+
             stompClientRef.current = client;
             setIsConnected(true);
         }, (error) => {
@@ -110,6 +162,7 @@ const ChatBox = ({ friend, onClose }) => {
             setMessages(prev => prev.map(msg =>
                 msg.senderId === friend.id && !msg.isRead ? { ...msg, isRead: true } : msg
             ));
+            if (onMessageRead) onMessageRead();
         }
     };
 
@@ -244,8 +297,19 @@ const ChatBox = ({ friend, onClose }) => {
                         const isLastRead = isMe && idx === lastReadMeIdx;
 
                         return (
-                            <div key={idx} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} group gap-1`}>
-                                <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end gap-2 max-w-full`}>
+                            <div
+                                key={idx}
+                                className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} gap-1`}
+                                style={{ marginBottom: reactions[String(msg.id)] ? '18px' : '4px', position: 'relative' }}
+                                onMouseEnter={() => {
+                                    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                                    setHoveredMsg(idx);
+                                }}
+                                onMouseLeave={() => {
+                                    hoverTimeoutRef.current = setTimeout(() => setHoveredMsg(null), 200);
+                                }}
+                            >
+                                <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '8px', width: '100%', position: 'relative' }}>
                                     {!isMe && (
                                         <div className="w-8 h-8 flex-shrink-0 mb-1">
                                             {showAvatar ? (
@@ -262,23 +326,101 @@ const ChatBox = ({ friend, onClose }) => {
                                         </div>
                                     )}
 
-                                    <div className={`max-w-[75%] shadow-sm relative group-hover:shadow-md transition-shadow
-                                        ${isMe
-                                            ? 'bg-cyan-600 text-white rounded-2xl rounded-tr-md'
-                                            : 'bg-[#3A3B3C] text-gray-100 rounded-2xl rounded-tl-md'
-                                        } ${isImg ? 'p-0 overflow-hidden bg-transparent' : 'px-4 py-2'}`}>
+                                    <div style={{
+                                        maxWidth: '75%',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                        position: 'relative',
+                                        borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                                        backgroundColor: isMe ? '#0891b2' : '#3A3B3C',
+                                        color: isMe ? 'white' : '#f3f4f6',
+                                        padding: isImg ? '0' : '8px 14px',
+                                        overflow: isImg ? 'hidden' : 'visible',
+                                        wordBreak: 'break-word',
+                                        overflowWrap: 'break-word',
+                                    }}>
 
                                         {isImg ? (
                                             <img src={msg.content} alt="GIF" className="w-full h-auto rounded-xl" />
                                         ) : (
-                                            <p className="break-words leading-snug">{msg.content}</p>
+                                            <p style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>{msg.content}</p>
                                         )}
 
-                                        <span className={`text-[10px] opacity-0 group-hover:opacity-70 absolute -bottom-5 min-w-max transition-opacity duration-200 text-gray-400
-                                            ${isMe ? 'right-0' : 'left-0'}`}>
+                                        <span style={{
+                                            fontSize: '10px',
+                                            position: 'absolute',
+                                            bottom: '-20px',
+                                            [isMe ? 'right' : 'left']: '0',
+                                            whiteSpace: 'nowrap',
+                                            color: '#9ca3af',
+                                            opacity: hoveredMsg === idx ? 0.7 : 0,
+                                            transition: 'opacity 0.2s',
+                                        }}>
                                             {msg.createdAt ? format(new Date(msg.createdAt), 'HH:mm') : 'Just now'}
                                         </span>
+
+                                        {/* Reaction badge */}
+                                        {reactions[String(msg.id)] && (
+                                            <div
+                                                onClick={() => chatApi.toggleReaction(msg.id, reactions[String(msg.id)].emoji)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    bottom: '-18px',
+                                                    [isMe ? 'left' : 'right']: '4px',
+                                                    background: '#3A3B3C',
+                                                    borderRadius: '12px',
+                                                    padding: '1px 6px',
+                                                    fontSize: '14px',
+                                                    cursor: 'pointer',
+                                                    border: '1.5px solid #242526',
+                                                    boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
+                                                    zIndex: 1,
+                                                }}
+                                            >
+                                                {reactions[String(msg.id)].emoji}
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {/* Hover reaction bar - absolutely positioned to avoid layout shift */}
+                                    {hoveredMsg === idx && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '100%',
+                                            [isMe ? 'right' : 'left']: '0',
+                                            marginBottom: '4px',
+                                            display: 'flex',
+                                            gap: '2px',
+                                            background: '#3A3B3C',
+                                            borderRadius: '20px',
+                                            padding: '4px 8px',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            zIndex: 10,
+                                            whiteSpace: 'nowrap',
+                                        }}>
+                                            {['❤️', '😂', '😮', '😢', '😡', '👍'].map(emoji => (
+                                                <button
+                                                    key={emoji}
+                                                    onClick={() => msg.id && chatApi.toggleReaction(msg.id, emoji)}
+                                                    style={{
+                                                        fontSize: '18px',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        padding: '2px',
+                                                        borderRadius: '50%',
+                                                        transition: 'transform 0.15s',
+                                                        transform: reactions[String(msg.id)]?.emoji === emoji ? 'scale(1.3)' : 'scale(1)',
+                                                        lineHeight: 1,
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.4)'}
+                                                    onMouseLeave={e => e.currentTarget.style.transform = reactions[String(msg.id)]?.emoji === emoji ? 'scale(1.3)' : 'scale(1)'}
+                                                >
+                                                    {emoji}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 {isLastRead && (
                                     <div className="flex justify-end mt-1 mr-1">
