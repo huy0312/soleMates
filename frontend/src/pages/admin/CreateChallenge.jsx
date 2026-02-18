@@ -12,6 +12,13 @@ const CreateChallenge = () => {
     const fileInputRef = useRef(null);
     const bibInputRef = useRef(null);
 
+    // Returns current datetime in 'YYYY-MM-DDTHH:mm' format for datetime-local min attribute
+    const getNow = () => {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    };
+
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -82,11 +89,15 @@ const CreateChallenge = () => {
 
     // List management for Distances
     const addDistance = () => {
-        if (tempDistance.trim()) {
-            const currentDistances = formData.distances ? formData.distances.split(',').map(s => s.trim()).filter(Boolean) : [];
-            setFormData(prev => ({ ...prev, distances: [...currentDistances, tempDistance.trim()].join(', ') }));
-            setTempDistance('');
+        const val = parseFloat(tempDistance);
+        if (!tempDistance.trim() || isNaN(val) || val <= 0) {
+            toast.error('Cự ly phải là số dương!');
+            return;
         }
+        const label = `${val}km`;
+        const currentDistances = formData.distances ? formData.distances.split(',').map(s => s.trim()).filter(Boolean) : [];
+        setFormData(prev => ({ ...prev, distances: [...currentDistances, label].join(', ') }));
+        setTempDistance('');
     };
 
     const removeDistance = (index) => {
@@ -97,11 +108,15 @@ const CreateChallenge = () => {
 
     // List management for Completion Time
     const addTime = () => {
-        if (tempTime.trim()) {
-            const currentTimes = formData.completionTime ? formData.completionTime.split(',').map(s => s.trim()).filter(Boolean) : [];
-            setFormData(prev => ({ ...prev, completionTime: [...currentTimes, tempTime.trim()].join(', ') }));
-            setTempTime('');
+        const val = parseInt(tempTime);
+        if (!tempTime.trim() || isNaN(val) || val <= 0) {
+            toast.error('Thời gian phải là số nguyên dương!');
+            return;
         }
+        const label = `${val} ngày`;
+        const currentTimes = formData.completionTime ? formData.completionTime.split(',').map(s => s.trim()).filter(Boolean) : [];
+        setFormData(prev => ({ ...prev, completionTime: [...currentTimes, label].join(', ') }));
+        setTempTime('');
     };
 
     const removeTime = (index) => {
@@ -184,6 +199,7 @@ const CreateChallenge = () => {
                             value={formData.registrationDeadline}
                             onChange={handleChange}
                             required
+                            min={getNow()}
                             className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
                         />
                     </div>
@@ -203,6 +219,7 @@ const CreateChallenge = () => {
                                 value={formData.startDate}
                                 onChange={handleChange}
                                 required
+                                min={getNow()}
                                 className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
                             />
                         </div>
@@ -217,6 +234,7 @@ const CreateChallenge = () => {
                                 value={formData.endDate}
                                 onChange={handleChange}
                                 required
+                                min={formData.startDate || getNow()}
                                 className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:outline-none focus:border-cyan-500 text-white"
                             />
                         </div>
@@ -281,14 +299,19 @@ const CreateChallenge = () => {
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-2">Các Cự Ly</label>
                         <div className="flex gap-2 mb-2">
-                            <input
-                                type="text"
-                                value={tempDistance}
-                                onChange={(e) => setTempDistance(e.target.value)}
-                                placeholder="VD: 5km"
-                                className="flex-1 px-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-white focus:border-cyan-500 outline-none"
-                                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDistance())}
-                            />
+                            <div className="relative flex-1">
+                                <input
+                                    type="number"
+                                    min="0.1"
+                                    step="0.1"
+                                    value={tempDistance}
+                                    onChange={(e) => setTempDistance(e.target.value)}
+                                    placeholder="VD: 5"
+                                    className="w-full px-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-white focus:border-cyan-500 outline-none pr-12"
+                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDistance())}
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">km</span>
+                            </div>
                             <button type="button" onClick={addDistance} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white font-medium">+</button>
                         </div>
                         <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-slate-800/30 rounded-lg">
@@ -303,14 +326,19 @@ const CreateChallenge = () => {
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-2">Thời Gian Hoàn Thành</label>
                         <div className="flex gap-2 mb-2">
-                            <input
-                                type="text"
-                                value={tempTime}
-                                onChange={(e) => setTempTime(e.target.value)}
-                                placeholder="VD: 30 ngày"
-                                className="flex-1 px-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-white focus:border-cyan-500 outline-none"
-                                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTime())}
-                            />
+                            <div className="relative flex-1">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={tempTime}
+                                    onChange={(e) => setTempTime(e.target.value)}
+                                    placeholder="VD: 30"
+                                    className="w-full px-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-white focus:border-cyan-500 outline-none pr-16"
+                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTime())}
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">ngày</span>
+                            </div>
                             <button type="button" onClick={addTime} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white font-medium">+</button>
                         </div>
                         <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-slate-800/30 rounded-lg">

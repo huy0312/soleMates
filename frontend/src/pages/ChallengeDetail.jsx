@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Share2, Heart, Users, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api/axios';
 import { useCart } from '../context/CartContext';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 const ChallengeDetail = () => {
     const { id } = useParams();
@@ -20,14 +21,15 @@ const ChallengeDetail = () => {
 
     const handleRegisterNow = () => {
         if (!selectedOption) return;
-        // Direct checkout flow: Navigate to checkout with the selected item
         navigate('/checkout', {
             state: {
                 item: {
                     ...selectedOption,
                     quantity: 1,
-                    // If we need challenge details in checkout (like title), add them here
-                    challengeTitle: challenge.title
+                },
+                challenge: {
+                    title: challenge.title,
+                    bibUrl: challenge.bibUrl || null,
                 }
             }
         });
@@ -91,10 +93,7 @@ const ChallengeDetail = () => {
     if (loading) return <div className="min-h-screen text-white flex items-center justify-center">Loading...</div>;
     if (!challenge) return <div className="min-h-screen text-white flex items-center justify-center">Challenge Not Found</div>;
 
-    // Helper for formatting currency
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-    };
+
 
     const parseDate = (dateInput) => {
         if (!dateInput) return null;

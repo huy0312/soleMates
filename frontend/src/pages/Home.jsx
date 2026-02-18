@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import ChallengeList from '../components/ChallengeList';
 
 const Home = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user && (user.role === 'ADMIN' || user.role === 'CHALLENGE_MANAGER')) {
+            navigate('/admin');
+        }
+    }, [user, navigate]);
+
     return (
         <>
             <Hero />

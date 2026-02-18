@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Calendar, Users, ArrowRight, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 const ChallengeList = ({ limit }) => {
     const [challenges, setChallenges] = useState([]);
@@ -106,7 +107,7 @@ const ChallengeList = ({ limit }) => {
                                 <div className="flex items-center text-sm text-slate-400">
                                     <Calendar size={16} className="mr-2 text-orange-500" />
                                     <span>
-                                        {new Date(challenge.startDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(challenge.endDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                        {formatDate(challenge.startDate)} - {formatDate(challenge.endDate)}
                                     </span>
                                 </div>
                                 <div className="flex items-center text-sm text-slate-400">
@@ -132,11 +133,11 @@ const ChallengeList = ({ limit }) => {
                                             return (
                                                 <>
                                                     <span className="text-orange-500 font-bold text-lg">
-                                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(minPrice)}
+                                                        {formatCurrency(minPrice)}
                                                     </span>
                                                     {hasSale && (
                                                         <span className="text-xs text-slate-500 line-through">
-                                                            {originalPrice ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(originalPrice) : ''}
+                                                            {originalPrice ? formatCurrency(originalPrice) : ''}
                                                         </span>
                                                     )}
                                                 </>

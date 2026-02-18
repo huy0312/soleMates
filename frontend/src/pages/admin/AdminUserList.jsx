@@ -8,18 +8,7 @@ const AdminUserList = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        // Mock data for now as backend endpoint might not exist or need verification
-        // In real impl, fetch from /users
-        const mockUsers = [
-            { id: 1, email: 'admin@solemates.com', fullName: 'Solemates Admin', role: 'ADMIN', status: true },
-            { id: 2, email: 'user@solemates.com', fullName: 'Nguyen Van A', role: 'MEMBER', status: true },
-            { id: 3, email: 'user2@solemates.com', fullName: 'Tran Thi B', role: 'MEMBER', status: false },
-        ];
-        setUsers(mockUsers);
-        setLoading(false);
-
-        // Uncomment when API is ready
-        // fetchUsers();
+        fetchUsers();
     }, []);
 
     const fetchUsers = async () => {
@@ -35,7 +24,7 @@ const AdminUserList = () => {
 
     const filteredUsers = users.filter(user =>
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
+        (user.fullName && user.fullName.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (loading) {
@@ -87,8 +76,12 @@ const AdminUserList = () => {
                                     <tr key={user.id} className="hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-cyan-400">
-                                                    <User size={20} />
+                                                <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-cyan-400 overflow-hidden">
+                                                    {user.avatarUrl ? (
+                                                        <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User size={20} />
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <div className="font-medium text-white">{user.fullName || 'Chưa cập nhật'}</div>
@@ -103,6 +96,10 @@ const AdminUserList = () => {
                                                 {user.role === 'ADMIN' ? (
                                                     <span className="flex items-center gap-1 text-xs font-bold text-violet-400 bg-violet-500/10 px-2 py-1 rounded-full border border-violet-500/20">
                                                         <Shield size={10} /> ADMIN
+                                                    </span>
+                                                ) : user.role === 'CHALLENGE_MANAGER' ? (
+                                                    <span className="flex items-center gap-1 text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-1 rounded-full border border-orange-500/20">
+                                                        <Shield size={10} /> MANAGER
                                                     </span>
                                                 ) : (
                                                     <span className="text-xs font-medium text-gray-400 bg-gray-500/10 px-2 py-1 rounded-full border border-gray-500/20">
@@ -123,8 +120,7 @@ const AdminUserList = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-400">
-                                            {/* Mock date */}
-                                            {new Date().toLocaleDateString('vi-VN')}
+                                            {user.joinDate ? new Date(user.joinDate).toLocaleDateString('vi-VN') : 'N/A'}
                                         </td>
                                     </tr>
                                 ))

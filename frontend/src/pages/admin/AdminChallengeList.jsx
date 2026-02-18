@@ -3,6 +3,7 @@ import { Plus, Search, Edit2, Trash2, Eye, Calendar, Users, Target } from 'lucid
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { formatDate } from '../../utils/formatters';
 
 const AdminChallengeList = () => {
     const navigate = useNavigate();
@@ -185,11 +186,11 @@ const AdminChallengeList = () => {
                                         <td className="px-6 py-4">
                                             <div className="text-sm text-gray-300 flex items-center gap-2">
                                                 <Calendar size={14} className="text-gray-500" />
-                                                <span>{new Date(challenge.startDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                                                <span>{formatDate(challenge.startDate)}</span>
                                             </div>
                                             <div className="flex items-center gap-1 mt-1">
                                                 <Target size={14} className="text-red-400" />
-                                                Đến: {new Date(challenge.endDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                Đến: {formatDate(challenge.endDate)}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

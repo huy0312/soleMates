@@ -33,4 +33,5 @@ public class UserDTO {
     private Integer nextRankThreshold;
     private Double rankProgress;
     private Long stravaId;
+    private Boolean status;
 }

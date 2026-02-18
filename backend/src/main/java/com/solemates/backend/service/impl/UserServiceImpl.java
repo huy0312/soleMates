@@ -28,6 +28,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserDTO> getAllUsersDTO() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> {
+                    MemberProfile profile = memberProfileRepository.findByUser(user).orElse(null);
+                    return mapToDTO(user, profile);
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
     }
@@ -192,6 +203,7 @@ public class UserServiceImpl implements UserService {
                 .nextRankThreshold(nextThreshold)
                 .rankProgress(progress)
                 .stravaId(user.getStravaId())
+                .status(user.getStatus())
                 .build();
     }
 

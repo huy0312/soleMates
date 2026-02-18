@@ -22,7 +22,8 @@ const Login = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            if (result.user?.role === 'ADMIN') {
+            const role = result.user?.role;
+            if (role === 'ADMIN' || role === 'CHALLENGE_MANAGER') {
                 navigate('/admin');
             } else {
                 navigate('/');

@@ -15,6 +15,11 @@ public class UserController {
 
     private final UserService userService;
 
+    @GetMapping
+    public ResponseEntity<java.util.List<UserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsersDTO());
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUserProfile(Authentication authentication) {
         return ResponseEntity.ok(userService.getUserProfile(authentication.getName()));

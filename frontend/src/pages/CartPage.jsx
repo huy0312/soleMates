@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { Trash2, ArrowLeft, CreditCard } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '../utils/formatters';
 
 const CartPage = () => {
     const { cart, loading, removeFromCart, refreshCart } = useCart();
@@ -11,9 +12,7 @@ const CartPage = () => {
     // Calculate total
     const total = cart?.items?.reduce((sum, item) => sum + (item.challengeOption.price * item.quantity), 0) || 0;
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-    };
+
 
     if (loading) {
         return <div className="min-h-screen pt-24 flex justify-center text-white">Loading...</div>;

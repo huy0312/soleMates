@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, MapPin, Clock, Zap, Activity, Calendar, TrendingUp, Brain, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
+import { formatDateTime } from '../utils/formatters';
 
 const RunDetailModal = ({ activityId, onClose }) => {
     const [activity, setActivity] = useState(null);
@@ -94,7 +95,7 @@ const RunDetailModal = ({ activityId, onClose }) => {
                                 {!loading && activity && (
                                     <div className="flex items-center gap-2 text-gray-400 text-sm">
                                         <Calendar size={14} />
-                                        {new Date(activity.start_date_local).toLocaleString('vi-VN')}
+                                        {formatDateTime(activity.start_date_local)}
                                     </div>
                                 )}
                             </div>

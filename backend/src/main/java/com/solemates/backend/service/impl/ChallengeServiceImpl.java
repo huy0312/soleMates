@@ -192,7 +192,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     private ChallengeStatus determineStatus(LocalDateTime startDate, LocalDateTime endDate) {
         LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(startDate)) {
+        // Add a small buffer (e.g., 2 minutes) to account for processing time or slight
+        // clock skew
+        // If startDate is > now + 2 minutes, then it is truly UPCOMING.
+        // If startDate is within the next 2 minutes (or in the past), it's ACTIVE
+        // (unless ended).
+        if (startDate.isAfter(now.plusMinutes(2))) {
             return ChallengeStatus.UPCOMING;
         } else if (now.isAfter(endDate)) {
             return ChallengeStatus.ENDED;
