@@ -40,10 +40,10 @@ export const CartProvider = ({ children }) => {
         try {
             const response = await api.post('/cart/add', { optionId, quantity });
             setCart(response.data);
-            alert('Đã thêm vào giỏ hàng!');
+            toast.success('Đã thêm vào giỏ hàng!');
         } catch (error) {
             console.error('Error adding to cart:', error);
-            alert('Có lỗi xảy ra khi thêm vào giỏ hàng.');
+            toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng.');
         }
     };
 
@@ -54,7 +54,7 @@ export const CartProvider = ({ children }) => {
             setCart(response.data);
         } catch (error) {
             console.error('Error removing from cart:', error);
-            alert('Có lỗi xảy ra khi xóa khỏi giỏ hàng.');
+            toast.error('Có lỗi xảy ra khi xóa khỏi giỏ hàng.');
         }
     };
 

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
+import toast from 'react-hot-toast';
 
 const StravaCallback = () => {
     const [searchParams] = useSearchParams();
@@ -16,7 +17,7 @@ const StravaCallback = () => {
         if (error) {
             processed.current = true;
             console.error("Strava Auth Error:", error);
-            alert("Kết nối Strava thất bại hoặc bị từ chối.");
+            toast.error("Kết nối Strava thất bại hoặc bị từ chối.");
             navigate('/profile');
             return;
         }
@@ -26,12 +27,11 @@ const StravaCallback = () => {
             const connectStrava = async () => {
                 try {
                     await api.post('/strava/connect', { code });
-                    alert("Kết nối Strava thành công!");
+                    toast.success("Kết nối Strava thành công!");
                     navigate('/profile');
                 } catch (err) {
-                    // Ignore 409 conflict or handle gracefully if possible, but mainly just log
                     console.error("Error connecting Strava:", err);
-                    alert("Có lỗi xảy ra khi kết nối Strava.");
+                    toast.error("Có lỗi xảy ra khi kết nối Strava.");
                     navigate('/profile');
                 }
             };
@@ -41,6 +41,7 @@ const StravaCallback = () => {
             navigate('/profile');
         }
     }, [code, error, navigate]);
+
 
     return (
         <div className="min-h-screen text-white flex flex-col items-center justify-center">

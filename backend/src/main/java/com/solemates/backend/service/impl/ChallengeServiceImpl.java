@@ -183,6 +183,13 @@ public class ChallengeServiceImpl implements ChallengeService {
         return mapToDTO(updated);
     }
 
+    @Override
+    public void deleteChallenge(Long id) {
+        Challenge challenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Challenge not found"));
+        challengeRepository.delete(challenge);
+    }
+
     private ChallengeStatus determineStatus(LocalDateTime startDate, LocalDateTime endDate) {
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(startDate)) {
