@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Eye, Calendar, Users, Target } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import toast from 'react-hot-toast';
 
 const AdminChallengeList = () => {
     const navigate = useNavigate();
@@ -65,17 +66,37 @@ const AdminChallengeList = () => {
         setPage(0); // Reset to first page on filter
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa thử thách này không?')) {
-            try {
-                // await api.delete(`/challenges/${id}`); // Uncomment when backend supports delete
-                alert('Tính năng xóa đang được phát triển');
-                // fetchChallenges();
-            } catch (error) {
-                console.error("Error deleting challenge:", error);
-                alert('Có lỗi xảy ra khi xóa thử thách');
-            }
-        }
+    const handleDelete = async (id, title) => {
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-semibold text-sm">Xóa thử thách?</p>
+                <p className="text-xs text-gray-500 line-clamp-1">{title}</p>
+                <div className="flex gap-2 justify-end">
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="px-3 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300 text-gray-700"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                await api.delete(`/challenges/${id}`);
+                                toast.success('Đã xóa thử thách thành công!');
+                                fetchChallenges();
+                            } catch (error) {
+                                console.error('Error deleting challenge:', error);
+                                toast.error('Có lỗi xảy ra khi xóa thử thách');
+                            }
+                        }}
+                        className="px-3 py-1 text-xs rounded bg-red-500 hover:bg-red-600 text-white"
+                    >
+                        Xóa
+                    </button>
+                </div>
+            </div>
+        ), { duration: 10000 });
     };
 
     return (
@@ -194,7 +215,7 @@ const AdminChallengeList = () => {
                                                     <Edit2 size={18} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(challenge.id)}
+                                                    onClick={() => handleDelete(challenge.id, challenge.title)}
                                                     className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-red-400 transition-colors"
                                                     title="Xóa"
                                                 >

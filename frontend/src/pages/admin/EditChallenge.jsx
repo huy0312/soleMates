@@ -50,7 +50,7 @@ const EditChallenge = () => {
 
             } catch (error) {
                 console.error("Error fetching challenge:", error);
-                alert("Không thể tải thông tin thử thách");
+                toast.error('Không thể tải thông tin thử thách');
                 navigate('/admin/challenges');
             }
         };
@@ -145,11 +145,11 @@ const EditChallenge = () => {
         try {
             // Using PUT for updates
             await api.put(`/challenges/${id}`, formData);
-            alert('Cập nhật thử thách thành công!');
+            toast.success('Cập nhật thử thách thành công!');
             navigate('/admin/challenges');
         } catch (error) {
             console.error('Failed to update challenge', error);
-            alert('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));
+            toast.error('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));
         } finally {
             setIsLoading(false);
         }

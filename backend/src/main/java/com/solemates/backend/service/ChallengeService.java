@@ -12,6 +12,8 @@ public interface ChallengeService {
 
     ChallengeDTO updateChallenge(Long id, ChallengeDTO challengeDTO);
 
+    void deleteChallenge(Long id);
+
     com.solemates.backend.dto.PageResponse<ChallengeDTO> getChallenges(int page, int size, String search,
             String status);
 }
