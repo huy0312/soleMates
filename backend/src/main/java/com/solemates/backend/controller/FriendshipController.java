@@ -17,10 +17,14 @@ public class FriendshipController {
     private final FriendshipService friendshipService;
 
     @PostMapping("/request/{userId}")
-    public ResponseEntity<Friendship> sendRequest(
+    public ResponseEntity<?> sendRequest(
             @PathVariable Long userId,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(friendshipService.sendRequest(userDetails.getUsername(), userId));
+        try {
+            return ResponseEntity.ok(friendshipService.sendRequest(userDetails.getUsername(), userId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{friendshipId}/accept")
@@ -38,9 +42,31 @@ public class FriendshipController {
     }
 
     @GetMapping("/status/{userId}")
-    public ResponseEntity<FriendshipStatus> getStatus(
+    public ResponseEntity<?> getStatus(
             @PathVariable Long userId,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(friendshipService.getFriendshipStatus(userDetails.getUsername(), userId));
+        return ResponseEntity.ok(friendshipService.getFriendshipStatusDetail(userDetails.getUsername(), userId));
+    }
+
+    @DeleteMapping("/{friendshipId}/cancel")
+    public ResponseEntity<?> cancelRequest(
+            @PathVariable Long friendshipId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            friendshipService.cancelRequest(friendshipId, userDetails.getUsername());
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getAcceptedFriends(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(friendshipService.getAcceptedFriends(userDetails.getUsername()));
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<?> getPendingRequests(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(friendshipService.getPendingRequests(userDetails.getUsername()));
     }
 }

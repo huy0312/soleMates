@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../api/axios';
 import postApi from '../api/postApi';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +10,12 @@ import {
     Smile, MapPin, Users, Calendar, Trophy, ChevronRight, Search, Bell, Activity, X, Loader
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ChatBox from '../components/ChatBox';
+
+
+
+
+
 
 const ActivitySelectionModal = ({ isOpen, onClose, onSelect }) => {
     const [activities, setActivities] = useState([]);
@@ -348,12 +355,16 @@ const PostItem = ({ post, onLike, onAddComment }) => {
 
 const Forum = () => {
     const [posts, setPosts] = useState([]);
+    const [friends, setFriends] = useState([]);
+    const [selectedFriend, setSelectedFriend] = useState(null);
     const [loading, setLoading] = useState(true);
     const [newPostContent, setNewPostContent] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [showActivityModal, setShowActivityModal] = useState(false);
     const [selectedActivity, setSelectedActivity] = useState(null);
+
     const { user } = useAuth();
+
 
     const fetchPosts = async () => {
         try {
@@ -367,9 +378,30 @@ const Forum = () => {
         }
     };
 
+    const fetchFriends = async () => {
+        if (!user) return;
+        try {
+            const response = await api.get('/friends/list');
+            setFriends(response.data);
+        } catch (error) {
+            console.error('Failed to fetch friends:', error);
+        }
+    };
+
     useEffect(() => {
         fetchPosts();
     }, []);
+
+    useEffect(() => {
+        fetchFriends();
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            fetchFriends();
+        }
+    }, [user]);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -443,28 +475,7 @@ const Forum = () => {
                     {/* MIDDLE FEED (Main Content) */}
                     <div className="lg:col-span-2 space-y-6">
 
-                        {/* Story Reel (Placeholder) */}
-                        <div className="grid grid-cols-4 gap-2 h-48 mb-6">
-                            <div className="bg-[#242526] rounded-xl overflow-hidden relative group cursor-pointer border border-white/5">
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-                                <div className="absolute bottom-0 inset-x-0 p-2 pt-8 bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="w-8 h-8 rounded-full bg-cyan-600 border-4 border-[#242526] flex items-center justify-center absolute -top-4 left-2 text-white font-bold">
-                                        +
-                                    </div>
-                                    <p className="text-white text-xs font-semibold mt-2">Tạo tin</p>
-                                </div>
-                                {user?.avatarUrl && <img src={user.avatarUrl} className="w-full h-full object-cover" alt="My Story" />}
-                            </div>
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="bg-[#242526] rounded-xl overflow-hidden relative cursor-pointer border border-white/5">
-                                    <img src={`https://picsum.photos/200/300?random=${i}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Story" />
-                                    <div className="absolute top-2 left-2 w-8 h-8 rounded-full border-4 border-cyan-500 overflow-hidden">
-                                        <img src={`https://i.pravatar.cc/100?img=${i + 10}`} className="w-full h-full object-cover" alt="User" />
-                                    </div>
-                                    <p className="absolute bottom-2 left-2 text-white text-xs font-bold drop-shadow-md">Người dùng {i}</p>
-                                </div>
-                            ))}
-                        </div>
+
 
                         {/* Create Post Widget */}
                         <div className="bg-[#242526] rounded-xl p-4 border border-white/5 shadow-lg">
@@ -593,23 +604,46 @@ const Forum = () => {
                                 </div>
                             </div>
                             <ul className="space-y-1">
-                                {[1, 2, 3, 4, 5].map(i => (
-                                    <li key={i} className="flex items-center gap-3 p-2 hover:bg-[#3A3B3C] rounded-lg cursor-pointer transition-colors">
-                                        <div className="relative">
-                                            <div className="w-9 h-9 rounded-full bg-slate-700 overflow-hidden">
-                                                <img src={`https://i.pravatar.cc/100?img=${i + 20}`} className="w-full h-full object-cover" alt="Friend" />
+                                {friends.length === 0 ? (
+                                    <li className="text-sm text-gray-500 p-2 text-center">Chưa có người liên hệ</li>
+                                ) : (
+                                    friends.map((friend) => (
+                                        <div // 3. Change Link to div and add onClick
+                                            key={friend.id}
+                                            onClick={() => setSelectedFriend(friend)}
+                                            className="flex items-center gap-3 p-2 hover:bg-[#3A3B3C] rounded-lg cursor-pointer transition-colors"
+                                        >
+                                            <div className="relative">
+                                                <div className="w-9 h-9 rounded-full bg-slate-700 overflow-hidden">
+                                                    {friend.avatarUrl ? (
+                                                        <img src={friend.avatarUrl} className="w-full h-full object-cover" alt={friend.fullName} />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-blue-500 to-cyan-500">
+                                                            {friend.fullName ? friend.fullName.charAt(0).toUpperCase() : 'U'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#242526]"></div>
                                             </div>
-                                            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#242526]"></div>
+                                            <span className="text-sm font-medium text-white truncate max-w-[150px]">{friend.fullName || friend.username}</span>
                                         </div>
-                                        <span className="text-sm font-medium text-white">Người bạn {i}</span>
-                                    </li>
-                                ))}
+                                    ))
+                                )}
                             </ul>
                         </div>
                     </div>
 
                 </div>
             </div>
+
+            {/* Chat Box */} {/* 4. Render ChatBox */}
+            {selectedFriend && (
+                <ChatBox
+                    friend={selectedFriend}
+                    onClose={() => setSelectedFriend(null)}
+
+                />
+            )}
 
             {/* Activity Selection Modal */}
             <ActivitySelectionModal
@@ -620,6 +654,7 @@ const Forum = () => {
                     setShowActivityModal(false);
                 }}
             />
+
         </div>
     );
 };

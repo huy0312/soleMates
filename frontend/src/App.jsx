@@ -19,6 +19,7 @@ import StravaCallback from './pages/StravaCallback';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import Forum from './pages/Forum';
+import FindFriends from './pages/FindFriends';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
@@ -54,6 +55,7 @@ function App() {
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/forum" element={<Forum />} />
+                <Route path="/find-friends" element={<FindFriends />} />
                 <Route path="/community" element={<Navigate to="/forum" replace />} />
                 <Route path="/strava/callback" element={<StravaCallback />} />
                 <Route path="/strava/callback" element={<StravaCallback />} />
